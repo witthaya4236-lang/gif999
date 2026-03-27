@@ -39,6 +39,10 @@ def detect_pack_size(text):
     """ฟังก์ชันออโต้สแกนหาตัวหาร: ค้นหาคำว่า แพ็ค 2, แพ็ก 3, x4, pack 6, 2 ขวด, 3 ขวด, 3 ชิ้น จากชื่อสินค้า"""
     if not text: return 1
     
+    # เพิ่มการตรวจสอบคำว่า "คู่" (Twin pack) เช่น แพ็คคู่, แพ็กคู่
+    if re.search(r'(แพ็คคู่|แพ็กคู่|แพคคู่|ขวดคู่)', text):
+        return 2
+    
     # 1. หาคำรูปแบบ แพ็ค 2, แพ็ก 3, x4, pack 6
     match1 = re.search(r'(?:แพ็ค|แพ็ก|แพค|pack|x)\s*(?:ละ\s*)?([2-9]|[1-9]\d)(?!\d)', text, re.IGNORECASE)
     if match1:
@@ -163,6 +167,7 @@ product_urls = {
         "bigc": "https://www.bigc.co.th/product/tiparos-fish-sauce-pet-bottle-700-ml.593",
         "lotus": "https://www.lotuss.com/th/product/tiparos-fish-sauce-700ml-49301",
         "seven": "https://www.allonline.7eleven.co.th/p/%E0%B8%97%E0%B8%B4%E0%B8%9E%E0%B8%A3%E0%B8%AA-%E0%B8%99%E0%B9%89%E0%B8%B3%E0%B8%9B%E0%B8%A5%E0%B8%B2%E0%B9%81%E0%B8%97%E0%B9%89-700-%E0%B8%A1%E0%B8%A5/481898/",
+        "seven_pack": 2, # บังคับหาร 2 สำหรับทิพรส 7-Eleven โดยเฉพาะ
         "cj": ""
     },
     2: { # ID 2 = เมกาเชฟน้ำปลา 500cc
@@ -172,21 +177,23 @@ product_urls = {
         "cj": ""
     },
     3: { # ID 3 = ปลาหมึกน้ำปลาแท้ขวดเพทฉลากเหลือง 700ml
-        "bigc": "https://www.bigc.co.th/product/squid-fish-sauce-yellow-label-700-cc.9827",
-        "lotus": "https://www.lotuss.com/th/product/squid-fish-sauce-700ml-71754261?srsltid=AfmBOoqkzZU8IIGI5f5cETIW794Axodkr-mr4EcTb5zg19durBs05NeO",
-        "seven": "https://www.allonline.7eleven.co.th/p/%E0%B8%9B%E0%B8%A5%E0%B8%B2%E0%B8%AB%E0%B8%A1%E0%B8%B6%E0%B8%81-%E0%B8%99%E0%B9%89%E0%B8%B3%E0%B8%9B%E0%B8%A5%E0%B8%B2%E0%B9%81%E0%B8%97%E0%B9%89%E0%B8%89%E0%B8%A5%E0%B8%B2%E0%B8%81%E0%B9%80%E0%B8%AB%E0%B8%A5%E0%B8%B7%E0%B8%AD%E0%B8%87-700-%E0%B8%A1%E0%B8%A5/479516/?p=0&q=%E0%B8%9B%E0%B8%A5%E0%B8%B2%E0%B8%AB%E0%B8%A1%E0%B8%B6%E0%B8%81%20%E0%B8%99%E0%B9%89%E0%B8%B3%E0%B8%9B%E0%B8%A5%E0%B8%B2%E0%B9%81%E0%B8%97%E0%B9%89%E0%B8%89%E0%B8%A5%E0%B8%B2%E0%B8%81%E0%B9%80%E0%B8%AB%E0%B8%A5%E0%B8%B7%E0%B8%AD%E0%B8%87%20700%20%E0%B8%A1%E0%B8%A5.&view=0&requestId=Oz9GVRx1Qzed-WGGpIFdCg&categoryId=178730951#itemId=390088_0",
+        "bigc": "https://www.bigc.co.th/product/squid-fish-sauce-yellow-label-700-cc.9827?srsltid=AfmBOooB62UHLqCkfKMk71eTiqxm6C8TbOxoPneK7o3W_mP2VuhVbg9m",
+        "lotus": "https://www.lotuss.com/th/product/squid-fish-sauce-700ml-71754261?srsltid=AfmBOopq8mPZNzavj1dApTeC3l8YA8JULfR7HwwQOKmbPxubE_-GIqJw",
+        "seven": "https://www.allonline.7eleven.co.th/p/%E0%B8%9B%E0%B8%A5%E0%B8%B2%E0%B8%AB%E0%B8%A1%E0%B8%B6%E0%B8%81-%E0%B8%99%E0%B9%89%E0%B8%B3%E0%B8%9B%E0%B8%A5%E0%B8%B2%E0%B9%81%E0%B8%97%E0%B9%89%E0%B8%89%E0%B8%A5%E0%B8%B2%E0%B8%81%E0%B9%80%E0%B8%AB%E0%B8%A5%E0%B8%B7%E0%B8%AD%E0%B8%87-700-%E0%B8%A1%E0%B8%A5/479516/",
+        "seven_pack": 2, # บังคับหาร 2 เพราะเว็บ 7-11 ลืมเขียนคำว่าแพ็คคู่ในชื่อสินค้า
         "cj": ""
     },
     4: { # ID 4 = ปลาหมึกน้ำปลาแท้ขวดเพทฉลากเขียว 700ml
-        "bigc": "https://www.bigc.co.th/product/squid-s-fish-sauce-genuine-fish-sauce-700-ml.234?region_id=ALL&utm_source=google&utm_medium=pmax&utm_campaign=idacbkk_ecom_bigc_gg_pmax_top-category_fresh-food_con&utm_content=alway-on&gad_source=1&gad_campaignid=20067109165&gbraid=0AAAAAo8MlEjN06uemFONO7mzO2humgNKy&gclid=CjwKCAjwspPOBhB9EiwATFbi5EL4-FeiR2R4PRqJE9lUdcVTgH-f67dpv_c72f4EB0SX-ejNOU5LKBoC3UcQAvD_BwE",
-        "lotus": "https://www.lotuss.com/th/product/squid-fish-sauce-700ml-7314299?gad_source=1&gad_campaignid=23683279917&gbraid=0AAAAADkX399SC-I8hFZur-ysZMXnRJleq&gclid=CjwKCAjwspPOBhB9EiwATFbi5PIEPZ74dqOP7kGZPUiMbp9CNifAThbXWX-7AE4s5f6SLChqRIAg7BoC31sQAvD_BwE",
-        "seven": "https://www.allonline.7eleven.co.th/p/%E0%B8%9B%E0%B8%A5%E0%B8%B2%E0%B8%AB%E0%B8%A1%E0%B8%B6%E0%B8%81-%E0%B8%99%E0%B9%89%E0%B8%B3%E0%B8%9B%E0%B8%A5%E0%B8%B2%E0%B9%81%E0%B8%97%E0%B9%89-700-%E0%B8%A1%E0%B8%A5/475234/?srsltid=AfmBOopcwW2zz2voscixPStHLGsxvV1fE_-jcA8l5NI5tO5Wu_kB2NC2",
+        "bigc": "https://www.bigc.co.th/product/squid-s-fish-sauce-genuine-fish-sauce-700-ml.234",
+        "lotus": "https://www.lotuss.com/th/product/squid-fish-sauce-700ml-7314299?utm_source=google-shopping_o2o-mkt&utm_medium=product-feed&utm_campaign=shoppingads-clicks_500sku-awo&gad_source=1&gad_campaignid=22769081711&gbraid=0AAAAApff8I9wf1NzaipX4nPkjv0fwOufc&gclid=CjwKCAjwspPOBhB9EiwATFbi5F81Vd0KYA_1f4Qv-MMzCqYA3Cj8sfgEDp4zdA8Ya_H5Wx6Bl3StVBoClToQAvD_BwE",
+        "seven": "https://www.allonline.7eleven.co.th/p/%E0%B8%9B%E0%B8%A5%E0%B8%B2%E0%B8%AB%E0%B8%A1%E0%B8%B6%E0%B8%81-%E0%B8%99%E0%B9%89%E0%B8%B3%E0%B8%9B%E0%B8%A5%E0%B8%B2%E0%B9%81%E0%B8%97%E0%B9%89-700-%E0%B8%A1%E0%B8%A5/475234/",
+        "seven_pack": 2, # บังคับหาร 2 เพราะเว็บไม่เขียนคำว่าแพ็คคู่
         "cj": ""
     },
     5: { # ID 5 = แม่ครัวฉลากทองซอสหอย 300cc
-        "bigc": "https://www.bigc.co.th/product/maekrua-brand-yster-sauce-300.238?srsltid=AfmBOooLpWBQfoSGz2oYVL90x8t8dn29CIKOvZW8Pj8f9X8lfbwSO2qL",
-        "lotus": "https://www.lotuss.com/th/product/maekrua-oyster-sauce-300ml-49611?gad_source=1&gad_campaignid=23683279917&gbraid=0AAAAADkX399SC-I8hFZur-ysZMXnRJleq&gclid=CjwKCAjwspPOBhB9EiwATFbi5Brels2dxToKWF6K7udd0YeOXbsxufocUMSXCpSaVms8yoYrxVphdxoCqkgQAvD_BwE",
-        "seven": "https://www.allonline.7eleven.co.th/p/%E0%B9%81%E0%B8%A1%E0%B9%88%E0%B8%84%E0%B8%A3%E0%B8%B1%E0%B8%A7-%E0%B8%8B%E0%B8%AD%E0%B8%AA%E0%B8%AB%E0%B8%AD%E0%B8%A2%E0%B8%99%E0%B8%B2%E0%B8%87%E0%B8%A3%E0%B8%A1-300-%E0%B8%A1%E0%B8%A5-%E0%B9%81%E0%B8%9E%E0%B9%87%E0%B8%81-3-%E0%B8%8A%E0%B8%B4%E0%B9%89%E0%B8%99/470680/?srsltid=AfmBOopFLXAnHgffcIx7xU42Gn0uVXKNjFaGSfWW4Vc8kNOV3MnEPC8A",
+        "bigc": "https://www.bigc.co.th/product/maekrua-brand-yster-sauce-300.238",
+        "lotus": "https://www.lotuss.com/th/product/maekrua-oyster-sauce-300ml-49611",
+        "seven": "https://www.allonline.7eleven.co.th/p/%E0%B9%81%E0%B8%A1%E0%B9%88%E0%B8%84%E0%B8%A3%E0%B8%B1%E0%B8%A7-%E0%B8%8B%E0%B8%AD%E0%B8%AA%E0%B8%AB%E0%B8%AD%E0%B8%A2%E0%B8%99%E0%B8%B2%E0%B8%87%E0%B8%A3%E0%B8%A1-300-%E0%B8%A1%E0%B8%A5-%E0%B9%81%E0%B8%9E%E0%B9%87%E0%B8%81-3-%E0%B8%8A%E0%B8%B4%E0%B9%89%E0%B8%99/470680/",
         "cj": ""
     },
     6: { # ID 6 = 
