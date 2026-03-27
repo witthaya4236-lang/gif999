@@ -39,21 +39,18 @@ def detect_pack_size(text):
     """ฟังก์ชันออโต้สแกนหาตัวหาร: ค้นหาคำว่า แพ็ค 2, แพ็ก 3, x4, pack 6, 2 ขวด, 3 ขวด, 3 ชิ้น จากชื่อสินค้า"""
     if not text: return 1
     
-    # เพิ่มการตรวจสอบคำว่า "คู่" (Twin pack) เช่น แพ็คคู่, แพ็กคู่
     if re.search(r'(แพ็คคู่|แพ็กคู่|แพคคู่|ขวดคู่)', text):
         return 2
     
-    # 1. หาคำรูปแบบ แพ็ค 2, แพ็ก 3, x4, pack 6
     match1 = re.search(r'(?:แพ็ค|แพ็ก|แพค|pack|x)\s*(?:ละ\s*)?([2-9]|[1-9]\d)(?!\d)', text, re.IGNORECASE)
     if match1:
         return int(match1.group(1))
         
-    # 2. หาคำรูปแบบ 2 ขวด, 3 ชิ้น, 4 ถุง, 6 กระป๋อง
     match2 = re.search(r'([2-9]|[1-9]\d)\s*(?:ขวด|ชิ้น|ถุง|กระป๋อง|กล่อง)', text)
     if match2:
         return int(match2.group(1))
         
-    return 1 # ถ้าไม่เจอคำว่าแพ็ค/ขวด/ชิ้น ให้หาร 1 (ราคาปกติ)
+    return 1 
 
 # ==========================================
 # 3. ฟังก์ชันดึงราคาของแต่ละห้าง
@@ -63,26 +60,9 @@ def get_bigc_price(url):
         response = scraper.get(url, timeout=20)
         soup = BeautifulSoup(response.text, 'html.parser')
         
-        # อ่านชื่อสินค้าเพื่อหาว่าเป็นแพ็คหรือไม่
         title_text = soup.title.text if soup.title else ""
         auto_pack = detect_pack_size(title_text)
         
-        # 1. หาราคาจาก Schema
-        ld_json_tags = soup.find_all('script', type='application/ld+json')
-        for tag in ld_json_tags:
-            if tag.string:
-                try:
-                    data = json.loads(tag.string)
-                    if isinstance(data, list):
-                        for item in data:
-                            if item.get('@type') == 'Product' and 'offers' in item:
-                                return float(item['offers']['price']), auto_pack
-                    elif data.get('@type') == 'Product' and 'offers' in data:
-                        return float(data['offers']['price']), auto_pack
-                except:
-                    pass
-        
-        # 2. หาราคาจากโครงสร้างเว็บ React
         script_tag = soup.find('script', id='__NEXT_DATA__')
         if script_tag:
             data = json.loads(script_tag.string)
@@ -92,9 +72,24 @@ def get_bigc_price(url):
             
             if promo_price and float(promo_price) > 0: return float(promo_price), auto_pack
             elif normal_price: return float(normal_price), auto_pack
+
+        ld_json_tags = soup.find_all('script', type='application/ld+json')
+        for tag in ld_json_tags:
+            if tag.string:
+                try:
+                    data = json.loads(tag.string)
+                    if isinstance(data, list):
+                        for item in data:
+                            if item.get('@type') == 'Product' and 'offers' in item:
+                                return float(item['offers']['price']), auto_pack
+                    elif data.get('@type') == 'Product' and 'offers' in data:
+                        return float(data['offers']['price']), auto_pack
+                except:
+                    pass
     except Exception as e:
         print(f"  ❌ Big C Error: ไม่สามารถเจาะระบบได้หรือลิงก์มีปัญหา")
     return None, 1
+
 
 def get_lotus_price(url):
     try:
@@ -104,7 +99,31 @@ def get_lotus_price(url):
         title_text = soup.title.text if soup.title else ""
         auto_pack = detect_pack_size(title_text)
         
-        # 1. ดึงจาก Schema.org ก่อน (แม่นยำที่สุด ป้องกันเว็บโลตัสเปลี่ยนคลาส)
+        # --- ชั้นที่ 1: เจาะข้อมูลจากระบบหลังบ้าน (Next.js Data) - แม่นยำที่สุด ---
+        script_tag = soup.find('script', id='__NEXT_DATA__')
+        if script_tag:
+            data_str = script_tag.string
+            # โลตัสใช้คำว่า sellPrice สำหรับราคาโปรโมชั่น
+            sell_prices = re.findall(r'"sellPrice"\s*:\s*(\d+(?:\.\d+)?)', data_str)
+            if sell_prices:
+                valid_prices = [float(p) for p in sell_prices if float(p) > 0]
+                if valid_prices: return valid_prices[0], auto_pack
+
+        # --- ชั้นที่ 2: สแกนหาจาก HTML Class เผื่อมีการตั้งชื่อคลาสใหม่ ---
+        for class_name in ['price-value', 'current-price', 'price', 'sale-price']:
+            tags = soup.find_all(class_=class_name) # ค้นหาแบบไม่จำกัด span
+            for tag in tags:
+                price = extract_number(tag.text)
+                if price and price > 5:
+                    return price, auto_pack
+
+        # --- ชั้นที่ 3: สแกนข้อความดิบแบบตรงไปตรงมา (หารูปแบบ ฿21.00/Each) ---
+        text = soup.get_text()
+        matches = re.findall(r'฿\s*(\d+(?:\.\d+)?)\s*/', text)
+        if matches:
+            return float(matches[0]), auto_pack
+
+        # ชั้นสำรองสุดท้าย: ดึงจาก Schema.org (ซึ่งมักจะเป็นราคาเต็ม)
         ld_json_tags = soup.find_all('script', type='application/ld+json')
         for tag in ld_json_tags:
             if tag.string:
@@ -118,14 +137,10 @@ def get_lotus_price(url):
                         return float(data['offers']['price']), auto_pack
                 except:
                     pass
-        
-        # 2. ถ้าหาไม่เจอ ค่อยมาหาจากคลาส HTML (เผื่อฉุกเฉิน)
-        price_tag = soup.find('span', class_='price-value') 
-        if price_tag:
-            return extract_number(price_tag.text), auto_pack
     except Exception as e:
         print(f"  ❌ Lotus Error: ไม่สามารถดึงข้อมูลได้")
     return None, 1
+
 
 def get_seven_price(url):
     try:
@@ -135,7 +150,13 @@ def get_seven_price(url):
         title_text = soup.title.text if soup.title else ""
         auto_pack = detect_pack_size(title_text)
         
-        # ดึงจาก Schema.org ก่อน
+        for class_name in ['price', 'current-price', 'price-current']:
+            tags = soup.find_all(class_=class_name)
+            for tag in tags:
+                price = extract_number(tag.text)
+                if price and price > 5:
+                    return price, auto_pack
+
         ld_json_tags = soup.find_all('script', type='application/ld+json')
         for tag in ld_json_tags:
             if tag.string:
@@ -149,13 +170,6 @@ def get_seven_price(url):
                         return float(data['offers']['price']), auto_pack
                 except:
                     pass
-                    
-        # ถ้าหาจาก Schema ไม่เจอ ให้ไปดูป้ายราคา HTML
-        for class_name in ['price', 'current-price', 'price-current']:
-            price_tag = soup.find(class_=class_name)
-            if price_tag:
-                price = extract_number(price_tag.text)
-                if price: return price, auto_pack
     except Exception as e:
         print(f"  ❌ 7-Eleven Error: ไม่สามารถดึงข้อมูลได้")
     return None, 1
@@ -183,75 +197,79 @@ product_urls = {
         "bigc": "https://www.bigc.co.th/product/tiparos-fish-sauce-pet-bottle-700-ml.593",
         "lotus": "https://www.lotuss.com/th/product/tiparos-fish-sauce-700ml-49301",
         "seven": "https://www.allonline.7eleven.co.th/p/%E0%B8%97%E0%B8%B4%E0%B8%9E%E0%B8%A3%E0%B8%AA-%E0%B8%99%E0%B9%89%E0%B8%B3%E0%B8%9B%E0%B8%A5%E0%B8%B2%E0%B9%81%E0%B8%97%E0%B9%89-700-%E0%B8%A1%E0%B8%A5/481898/",
-        "seven_pack": 2, # บังคับหาร 2 สำหรับทิพรส 7-Eleven โดยเฉพาะ
+        "seven_pack": 2, 
         "cj": ""
     },
     2: { # ID 2 = เมกาเชฟน้ำปลา 500cc
         "bigc": "https://www.bigc.co.th/product/megachef-premium-fish-sauce-500-ml.1689",
         "lotus": "https://www.lotuss.com/th/product/megachef-premium-fish-sauce-500ml-18011268",
         "seven": "https://www.allonline.7eleven.co.th/p/%E0%B9%80%E0%B8%A1%E0%B8%81%E0%B8%B2%E0%B9%80%E0%B8%8A%E0%B8%9F-%E0%B8%99%E0%B9%89%E0%B8%B3%E0%B8%9B%E0%B8%A5%E0%B8%B2%E0%B9%81%E0%B8%97%E0%B9%89-500-%E0%B8%A1%E0%B8%A5-%E0%B9%81%E0%B8%9E%E0%B9%87%E0%B8%81-3-%E0%B8%8A%E0%B8%B4%E0%B9%89%E0%B8%99/580636/",
+        "seven_pack": 3, # บังคับหาร 3
         "cj": ""
     },
     3: { # ID 3 = ปลาหมึกน้ำปลาแท้ขวดเพทฉลากเหลือง 700ml
-        "bigc": "https://www.bigc.co.th/product/squid-fish-sauce-yellow-label-700-cc.9827?srsltid=AfmBOooB62UHLqCkfKMk71eTiqxm6C8TbOxoPneK7o3W_mP2VuhVbg9m",
+        "bigc": "https://www.bigc.co.th/product/squid-fish-sauce-yellow-label-700-cc.9827",
         "lotus": "https://www.lotuss.com/th/product/squid-fish-sauce-700ml-71754261",
         "seven": "https://www.allonline.7eleven.co.th/p/%E0%B8%9B%E0%B8%A5%E0%B8%B2%E0%B8%AB%E0%B8%A1%E0%B8%B6%E0%B8%81-%E0%B8%99%E0%B9%89%E0%B8%B3%E0%B8%9B%E0%B8%A5%E0%B8%B2%E0%B9%81%E0%B8%97%E0%B9%89%E0%B8%89%E0%B8%A5%E0%B8%B2%E0%B8%81%E0%B9%80%E0%B8%AB%E0%B8%A5%E0%B8%B7%E0%B8%AD%E0%B8%87-700-%E0%B8%A1%E0%B8%A5/479516/",
-        "seven_pack": 2, # บังคับหาร 2 เพราะเว็บ 7-11 ลืมเขียนคำว่าแพ็คคู่ในชื่อสินค้า
+        "seven_pack": 2, 
         "cj": ""
     },
     4: { # ID 4 = ปลาหมึกน้ำปลาแท้ขวดเพทฉลากเขียว 700ml
         "bigc": "https://www.bigc.co.th/product/squid-s-fish-sauce-genuine-fish-sauce-700-ml.234",
-        "lotus": "https://www.lotuss.com/th/product/squid-fish-sauce-700ml-7314299?utm_source=google-shopping_o2o-mkt&utm_medium=product-feed&utm_campaign=shoppingads-clicks_500sku-awo&gad_source=1&gad_campaignid=22769081711&gbraid=0AAAAApff8I9wf1NzaipX4nPkjv0fwOufc&gclid=CjwKCAjwspPOBhB9EiwATFbi5F81Vd0KYA_1f4Qv-MMzCqYA3Cj8sfgEDp4zdA8Ya_H5Wx6Bl3StVBoClToQAvD_BwE",
+        "lotus": "https://www.lotuss.com/th/product/squid-fish-sauce-700ml-7314299",
         "seven": "https://www.allonline.7eleven.co.th/p/%E0%B8%9B%E0%B8%A5%E0%B8%B2%E0%B8%AB%E0%B8%A1%E0%B8%B6%E0%B8%81-%E0%B8%99%E0%B9%89%E0%B8%B3%E0%B8%9B%E0%B8%A5%E0%B8%B2%E0%B9%81%E0%B8%97%E0%B9%89-700-%E0%B8%A1%E0%B8%A5/475234/",
-        "seven_pack": 2, # บังคับหาร 2 เพราะเว็บไม่เขียนคำว่าแพ็คคู่
+        "seven_pack": 2, 
         "cj": ""
     },
     5: { # ID 5 = แม่ครัวฉลากทองซอสหอย 300cc
         "bigc": "https://www.bigc.co.th/product/maekrua-brand-yster-sauce-300.238",
         "lotus": "https://www.lotuss.com/th/product/maekrua-oyster-sauce-300ml-49611",
         "seven": "https://www.allonline.7eleven.co.th/p/%E0%B9%81%E0%B8%A1%E0%B9%88%E0%B8%84%E0%B8%A3%E0%B8%B1%E0%B8%A7-%E0%B8%8B%E0%B8%AD%E0%B8%AA%E0%B8%AB%E0%B8%AD%E0%B8%A2%E0%B8%99%E0%B8%B2%E0%B8%87%E0%B8%A3%E0%B8%A1-300-%E0%B8%A1%E0%B8%A5-%E0%B9%81%E0%B8%9E%E0%B9%87%E0%B8%81-3-%E0%B8%8A%E0%B8%B4%E0%B9%89%E0%B8%99/470680/",
+        "seven_pack": 3, # บังคับหาร 3
         "cj": ""
     },
-    6: { # ID 6 = 
-        "bigc": "",
-        "lotus": "",
-        "seven": "",
+    6: { # ID 6 = แม่ครัวฉลากทองซอสหอย 600cc
+        "bigc": "https://www.bigc.co.th/product/maekrua-oyster-sauce-600-ml.18138",
+        "lotus": "https://www.lotuss.com/th/product/maekrua-oyster-sauce-600ml-231924",
+        "seven": "https://www.allonline.7eleven.co.th/p/%E0%B9%81%E0%B8%A1%E0%B9%88%E0%B8%84%E0%B8%A3%E0%B8%B1%E0%B8%A7-%E0%B8%8B%E0%B8%AD%E0%B8%AA%E0%B8%AB%E0%B8%AD%E0%B8%A2%E0%B8%99%E0%B8%B2%E0%B8%87%E0%B8%A3%E0%B8%A1-600-%E0%B8%A1%E0%B8%A5/482795/",
+        "seven_pack": 2,
         "cj": ""
     },
-    7: { # ID 7 = 
-        "bigc": "",
-        "lotus": "",
-        "seven": "",
+    7: { # ID 7 = ภูเขาทองซอสปรุงรสฝาเขียวเพท 1L
+        "bigc": "https://www.bigc.co.th/product/golden-mountain-seasoning-sauce-green-980-ml.594",
+        "lotus": "https://www.lotuss.com/th/product/golden-mountain-green-cap-soy-sauce-1l-49379",
+        "seven": "https://www.allonline.7eleven.co.th/p/%E0%B8%A0%E0%B8%B9%E0%B9%80%E0%B8%82%E0%B8%B2%E0%B8%97%E0%B8%AD%E0%B8%87-%E0%B8%8B%E0%B8%AD%E0%B8%AA%E0%B8%9B%E0%B8%A3%E0%B8%B8%E0%B8%87%E0%B8%A3%E0%B8%AA%E0%B8%9D%E0%B8%B2%E0%B9%80%E0%B8%82%E0%B8%B5%E0%B8%A2%E0%B8%A7-1-%E0%B8%A5%E0%B8%B4%E0%B8%95%E0%B8%A3/482340/",
         "cj": ""
     },
-    8: { # ID 8 = 
-        "bigc": "",
-        "lotus": "",
-        "seven": "",
+    8: { # ID 8 = แม็กกี้ซอสปรุงรส 680cc
+        "bigc": "https://www.bigc.co.th/product/maggi-seasoning-sauce-700-ml.606",
+        "lotus": "https://www.lotuss.com/th/product/maggi-well-rounded-stir-fried-recipe-cooking-sauce-1-680ml-1012614",
+        "seven": "https://www.allonline.7eleven.co.th/p/%E0%B9%81%E0%B8%A1%E0%B9%87%E0%B8%81%E0%B8%81%E0%B8%B5%E0%B9%89-%E0%B8%8B%E0%B8%AD%E0%B8%AA%E0%B8%9B%E0%B8%A3%E0%B8%B8%E0%B8%87%E0%B8%AD%E0%B8%B2%E0%B8%AB%E0%B8%B2%E0%B8%A3-680-%E0%B8%A1%E0%B8%A5-%E0%B9%81%E0%B8%9E%E0%B9%87%E0%B8%81-3-%E0%B8%8A%E0%B8%B4%E0%B9%89%E0%B8%99/469337/",
+        "seven_pack": 3, # บังคับหาร 3
         "cj": ""
     },
-    9: { # ID 9 = 
-        "bigc": "",
-        "lotus": "",
-        "seven": "",
+    9: { # ID 9 = แม็กกี้ซอสปรุงอาหารสูตรเข้มเข้าเนื้อ 680cc
+        "bigc": "https://www.bigc.co.th/product/maggi-cooking-sauce-concentrated-formula-green-cap-size-680-ml.19444",
+        "lotus": "https://www.lotuss.com/th/product/maggi-intense-meat-penetration-recipe-cooking-sauce-680ml-74095846",
+        "seven": "https://www.allonline.7eleven.co.th/p/%E0%B9%81%E0%B8%A1%E0%B9%87%E0%B8%81%E0%B8%81%E0%B8%B5%E0%B9%89-%E0%B8%8B%E0%B8%AD%E0%B8%AA%E0%B8%9B%E0%B8%A3%E0%B8%B8%E0%B8%87%E0%B8%A3%E0%B8%AA-%E0%B8%9D%E0%B8%B2%E0%B9%80%E0%B8%82%E0%B8%B5%E0%B8%A2%E0%B8%A7-680-%E0%B8%81%E0%B8%A3%E0%B8%B1%E0%B8%A1/521267/",
         "cj": ""
     },
-    10: { # ID 10 = 
-        "bigc": "",
-        "lotus": "",
-        "seven": "",
+    10: { # ID 10 = เด็กสมบูรณ์ซอสหอยนางรมสูตรเข้มข้น 800g
+        "bigc": "https://www.bigc.co.th/product/deksomboon-oyster-sauce-concentrate-formula-800-g.875",
+        "lotus": "https://www.lotuss.com/th/product/healthy-boy-brand-thick-oyster-sauce-800ml-12579246",
+        "seven": "https://www.allonline.7eleven.co.th/p/%E0%B9%80%E0%B8%94%E0%B9%87%E0%B8%81%E0%B8%AA%E0%B8%A1%E0%B8%9A%E0%B8%B9%E0%B8%A3%E0%B8%93%E0%B9%8C-%E0%B8%8B%E0%B8%AD%E0%B8%AA%E0%B8%AB%E0%B8%AD%E0%B8%A2%E0%B8%99%E0%B8%B2%E0%B8%87%E0%B8%A3%E0%B8%A1%E0%B8%AA%E0%B8%B9%E0%B8%95%E0%B8%A3%E0%B9%80%E0%B8%82%E0%B9%89%E0%B8%A1%E0%B8%82%E0%B9%89%E0%B8%99-800-%E0%B8%81%E0%B8%A3%E0%B8%B1%E0%B8%A1/482342/",
         "cj": ""
     },
-    11: { # ID 11 = 
-        "bigc": "",
-        "lotus": "",
-        "seven": "",
+    11: { # ID 11 = เด็กสมบูรณ์ซีอิ๊วขาวสูตร1 700cc
+        "bigc": "https://www.bigc.co.th/product/healthy-boy-brand-soy-sauce-formula-1-size-700-ml.612",
+        "lotus": "https://www.lotuss.com/th/product/healthy-boy-brand-formula-1-soybean-sauce-700ml-49794",
+        "seven": "https://www.allonline.7eleven.co.th/p/%E0%B9%80%E0%B8%94%E0%B9%87%E0%B8%81%E0%B8%AA%E0%B8%A1%E0%B8%9A%E0%B8%B9%E0%B8%A3%E0%B8%93%E0%B9%8C-%E0%B8%8B%E0%B8%B5%E0%B8%AD%E0%B8%B4%E0%B9%8A%E0%B8%A7%E0%B8%82%E0%B8%B2%E0%B8%A7%E0%B8%AA%E0%B8%B9%E0%B8%95%E0%B8%A31-700-%E0%B8%A1%E0%B8%A5/481336/",
         "cj": ""
     },
-    12: { # ID 12 = 
-        "bigc": "",
-        "lotus": "",
-        "seven": "",
+    12: { # ID 12 = เด็กสมบูรณ์ซีอิ๊วขาวสูตร1 1000cc
+        "bigc": "https://www.bigc.co.th/product/healthy-boy-soy-sauce-formula-1-1000-ml.235",
+        "lotus": "https://www.lotuss.com/th/product/healthy-boy-brand-formula-1-soybean-sauce-1000ml-20190646",
+        "seven": "https://www.allonline.7eleven.co.th/p/%E0%B9%80%E0%B8%94%E0%B9%87%E0%B8%81%E0%B8%AA%E0%B8%A1%E0%B8%9A%E0%B8%B9%E0%B8%A3%E0%B8%93%E0%B9%8C-%E0%B8%8B%E0%B8%B5%E0%B8%AD%E0%B8%B4%E0%B9%8A%E0%B8%A7%E0%B8%82%E0%B8%B2%E0%B8%A7%E0%B8%AA%E0%B8%B9%E0%B8%95%E0%B8%A31-1000-%E0%B8%A1%E0%B8%A5/480988/",
         "cj": ""
     }
 }
@@ -272,9 +290,9 @@ for item in appData:
         if urls.get("bigc"):
             new_price, auto_pack = get_bigc_price(urls["bigc"])
             if new_price is not None:
-                pack_size = urls.get("bigc_pack", auto_pack) # ใช้ manual ก่อน ถ้าไม่มีใช้ออโต้
+                pack_size = urls.get("bigc_pack", auto_pack)
                 final_price = round(new_price / pack_size, 2)
-                div_text = f" (ดึงมา {new_price} หารด้วยออโต้แพ็ค {pack_size})" if pack_size > 1 else ""
+                div_text = f" (ดึงมา {new_price} หารด้วย {pack_size})" if pack_size > 1 else ""
                 
                 if float(item.get('bigc', 0)) != final_price:
                     print(f"  -> 📉 อัปเดต Big C เป็น: {final_price} บาท{div_text}")
@@ -289,7 +307,7 @@ for item in appData:
             if new_price is not None:
                 pack_size = urls.get("lotus_pack", auto_pack)
                 final_price = round(new_price / pack_size, 2)
-                div_text = f" (ดึงมา {new_price} หารด้วยออโต้แพ็ค {pack_size})" if pack_size > 1 else ""
+                div_text = f" (ดึงมา {new_price} หารด้วย {pack_size})" if pack_size > 1 else ""
                 
                 if float(item.get('lotus', 0)) != final_price:
                     print(f"  -> 📉 อัปเดต Lotus เป็น: {final_price} บาท{div_text}")
@@ -304,7 +322,7 @@ for item in appData:
             if new_price is not None:
                 pack_size = urls.get("seven_pack", auto_pack)
                 final_price = round(new_price / pack_size, 2)
-                div_text = f" (ดึงมา {new_price} หารด้วยออโต้แพ็ค {pack_size})" if pack_size > 1 else ""
+                div_text = f" (ดึงมา {new_price} หารด้วย {pack_size})" if pack_size > 1 else ""
                 
                 if float(item.get('seven', 0)) != final_price:
                     print(f"  -> 📉 อัปเดต 7-Eleven เป็น: {final_price} บาท{div_text}")
@@ -319,7 +337,7 @@ for item in appData:
             if new_price is not None:
                 pack_size = urls.get("cj_pack", auto_pack)
                 final_price = round(new_price / pack_size, 2)
-                div_text = f" (ดึงมา {new_price} หารด้วยออโต้แพ็ค {pack_size})" if pack_size > 1 else ""
+                div_text = f" (ดึงมา {new_price} หารด้วย {pack_size})" if pack_size > 1 else ""
                 
                 if float(item.get('cj', 0)) != final_price:
                     print(f"  -> 📉 อัปเดต CJ เป็น: {final_price} บาท{div_text}")
