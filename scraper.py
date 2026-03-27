@@ -239,6 +239,7 @@ product_urls = {
         "bigc": "https://www.bigc.co.th/product/golden-mountain-seasoning-sauce-green-980-ml.594",
         "lotus": "https://www.lotuss.com/th/product/golden-mountain-green-cap-soy-sauce-1l-49379",
         "seven": "https://www.allonline.7eleven.co.th/p/%E0%B8%A0%E0%B8%B9%E0%B9%80%E0%B8%82%E0%B8%B2%E0%B8%97%E0%B8%AD%E0%B8%87-%E0%B8%8B%E0%B8%AD%E0%B8%AA%E0%B8%9B%E0%B8%A3%E0%B8%B8%E0%B8%87%E0%B8%A3%E0%B8%AA%E0%B8%9D%E0%B8%B2%E0%B9%80%E0%B8%82%E0%B8%B5%E0%B8%A2%E0%B8%A7-1-%E0%B8%A5%E0%B8%B4%E0%B8%95%E0%B8%A3/482340/",
+        "seven_pack": 2, # บังคับหาร 2 เพราะเซเว่นขายเป็นแพ็กคู่ (112 บาท) แต่ไม่ได้ระบุในชื่อ
         "cj": ""
     },
     8: { # ID 8 = แม็กกี้ซอสปรุงรส 680cc
@@ -252,24 +253,28 @@ product_urls = {
         "bigc": "https://www.bigc.co.th/product/maggi-cooking-sauce-concentrated-formula-green-cap-size-680-ml.19444",
         "lotus": "https://www.lotuss.com/th/product/maggi-intense-meat-penetration-recipe-cooking-sauce-680ml-74095846",
         "seven": "https://www.allonline.7eleven.co.th/p/%E0%B9%81%E0%B8%A1%E0%B9%87%E0%B8%81%E0%B8%81%E0%B8%B5%E0%B9%89-%E0%B8%8B%E0%B8%AD%E0%B8%AA%E0%B8%9B%E0%B8%A3%E0%B8%B8%E0%B8%87%E0%B8%A3%E0%B8%AA-%E0%B8%9D%E0%B8%B2%E0%B9%80%E0%B8%82%E0%B8%B5%E0%B8%A2%E0%B8%A7-680-%E0%B8%81%E0%B8%A3%E0%B8%B1%E0%B8%A1/521267/",
+        "seven_pack": 2, # บังคับหาร 2
         "cj": ""
     },
     10: { # ID 10 = เด็กสมบูรณ์ซอสหอยนางรมสูตรเข้มข้น 800g
         "bigc": "https://www.bigc.co.th/product/deksomboon-oyster-sauce-concentrate-formula-800-g.875",
         "lotus": "https://www.lotuss.com/th/product/healthy-boy-brand-thick-oyster-sauce-800ml-12579246",
         "seven": "https://www.allonline.7eleven.co.th/p/%E0%B9%80%E0%B8%94%E0%B9%87%E0%B8%81%E0%B8%AA%E0%B8%A1%E0%B8%9A%E0%B8%B9%E0%B8%A3%E0%B8%93%E0%B9%8C-%E0%B8%8B%E0%B8%AD%E0%B8%AA%E0%B8%AB%E0%B8%AD%E0%B8%A2%E0%B8%99%E0%B8%B2%E0%B8%87%E0%B8%A3%E0%B8%A1%E0%B8%AA%E0%B8%B9%E0%B8%95%E0%B8%A3%E0%B9%80%E0%B8%82%E0%B9%89%E0%B8%A1%E0%B8%82%E0%B9%89%E0%B8%99-800-%E0%B8%81%E0%B8%A3%E0%B8%B1%E0%B8%A1/482342/",
+        "seven_pack": 2, # บังคับหาร 2 เพราะเซเว่นขายแพ็กคู่ (66 บาท) แต่ไม่พิมพ์บอกในชื่อ
         "cj": ""
     },
     11: { # ID 11 = เด็กสมบูรณ์ซีอิ๊วขาวสูตร1 700cc
         "bigc": "https://www.bigc.co.th/product/healthy-boy-brand-soy-sauce-formula-1-size-700-ml.612",
         "lotus": "https://www.lotuss.com/th/product/healthy-boy-brand-formula-1-soybean-sauce-700ml-49794",
         "seven": "https://www.allonline.7eleven.co.th/p/%E0%B9%80%E0%B8%94%E0%B9%87%E0%B8%81%E0%B8%AA%E0%B8%A1%E0%B8%9A%E0%B8%B9%E0%B8%A3%E0%B8%93%E0%B9%8C-%E0%B8%8B%E0%B8%B5%E0%B8%AD%E0%B8%B4%E0%B9%8A%E0%B8%A7%E0%B8%82%E0%B8%B2%E0%B8%A7%E0%B8%AA%E0%B8%B9%E0%B8%95%E0%B8%A31-700-%E0%B8%A1%E0%B8%A5/481336/",
+        "seven_pack": 2, # บังคับหาร 2 เพราะเซเว่นขายแพ็กคู่ (110 บาท)
         "cj": ""
     },
     12: { # ID 12 = เด็กสมบูรณ์ซีอิ๊วขาวสูตร1 1000cc
         "bigc": "https://www.bigc.co.th/product/healthy-boy-soy-sauce-formula-1-1000-ml.235",
         "lotus": "https://www.lotuss.com/th/product/healthy-boy-brand-formula-1-soybean-sauce-1000ml-20190646",
         "seven": "https://www.allonline.7eleven.co.th/p/%E0%B9%80%E0%B8%94%E0%B9%87%E0%B8%81%E0%B8%AA%E0%B8%A1%E0%B8%9A%E0%B8%B9%E0%B8%A3%E0%B8%93%E0%B9%8C-%E0%B8%8B%E0%B8%B5%E0%B8%AD%E0%B8%B4%E0%B9%8A%E0%B8%A7%E0%B8%82%E0%B8%B2%E0%B8%A7%E0%B8%AA%E0%B8%B9%E0%B8%95%E0%B8%A31-1000-%E0%B8%A1%E0%B8%A5/480988/",
+        "seven_pack": 2, # บังคับหาร 2 เพราะเซเว่นขายแพ็กคู่ (118 บาท) แต่ไม่พิมพ์บอกในชื่อ
         "cj": ""
     }
 }
