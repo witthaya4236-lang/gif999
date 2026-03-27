@@ -100,10 +100,40 @@ def get_cj_price(url):
 # 3. พื้นที่ใส่ลิงก์สินค้า (นำลิงก์มาใส่ใน "")
 # ==========================================
 product_urls = {
+    1: { # ID 1 = ทิพรสน้ำปลาขวดเพท 700cc
+        "bigc": "https://www.bigc.co.th/product/tiparos-fish-sauce-pet-bottle-700-ml.593?srsltid=AfmBOoomFq0ARaVKBKJ1vxh0T621m24WtstVHGhbwUjVEIAmtJkBVnmR",
+        "lotus": "https://www.lotuss.com/th/product/tiparos-fish-sauce-700ml-49301?srsltid=AfmBOoqNQGS6hjkIHFqybGePbs2rWVQmQpdbpB-T8aEauBqZDwaN8Ja2", # <-- เอาลิงก์หน้าเว็บโลตัสมาวาง
+        "seven": "https://www.allonline.7eleven.co.th/p/%E0%B8%97%E0%B8%B4%E0%B8%9E%E0%B8%A3%E0%B8%AA-%E0%B8%99%E0%B9%89%E0%B8%B3%E0%B8%9B%E0%B8%A5%E0%B8%B2%E0%B9%81%E0%B8%97%E0%B9%89-700-%E0%B8%A1%E0%B8%A5/481898/?srsltid=AfmBOooHbbp5R8inDVnit2F8E60EPTwyUboUouY3_UuuqNzkfvNgTk14, # <-- เอาลิงก์หน้าเว็บเซเว่นมาวาง
+        "cj": "https://www.cjexpress.co.th/product/..." # <-- เอาลิงก์หน้าเว็บ CJ มาวาง
+    },
+    2: { # ID 2 = เมกาเชฟน้ำปลา 500cc
+        "bigc": "https://www.bigc.co.th/product/megachef-premium-fish-sauce-500-ml.1689?srsltid=AfmBOor1apNgYecIy-Jsy2bJfRNwEPtr-Fi7qM5PoAuPaWtGUIARur5I",
+        "lotus": "https://www.lotuss.com/th/product/megachef-premium-fish-sauce-500ml-18011268?srsltid=AfmBOoqdWwBX1_zW7G_NvBvdQgfdWex3WS_eByeK16zGkKwjxlMhs9yg",
+        "seven": "https://www.allonline.7eleven.co.th/p/%E0%B9%80%E0%B8%A1%E0%B8%81%E0%B8%B2%E0%B9%80%E0%B8%8A%E0%B8%9F-%E0%B8%99%E0%B9%89%E0%B8%B3%E0%B8%9B%E0%B8%A5%E0%B8%B2%E0%B9%81%E0%B8%97%E0%B9%89-500-%E0%B8%A1%E0%B8%A5-%E0%B9%81%E0%B8%9E%E0%B9%87%E0%B8%81-3-%E0%B8%8A%E0%B8%B4%E0%B9%89%E0%B8%99/580636/?p=0&q=%E0%B9%80%E0%B8%A1%E0%B8%81%E0%B8%B2%E0%B9%80%E0%B8%8A%E0%B8%9F%20%E0%B8%99%E0%B9%89%E0%B8%B3%E0%B8%9B%E0%B8%A5%E0%B8%B2%E0%B9%81%E0%B8%97%E0%B9%89%20500%20%E0%B8%A1%E0%B8%A5.&view=0&requestId=R7MDU6JfRkmdSfCuueV1rg&categoryId=178730951#itemId=567073_0", # <-- ถ้าร้านไหนไม่มีขาย หรือหาลิงก์ไม่เจอ ปล่อยเครื่องหมายคำพูดติดกันไว้แบบนี้ได้เลยครับ
+        "cj": "https://www.cjexpress.co.th/product/..."
+    },
+    3: { # ID 3 = ปลาหมึกน้ำปลาแท้ขวดเพทฉลากเหลือง 700ml
+        "bigc": "ลิงก์บิ๊กซี...",
+        "lotus": "ลิงก์โลตัส...",
+        "seven": "ลิงก์เซเว่น...",
+        "cj": "ลิงก์ซีเจ..."
+    },
+    
+    # ... สินค้า ID 4 และ 5 ...
+    
+    10: { # ID 10 = เด็กสมบูรณ์ซอสหอยนางรมสูตรเข้มข้น 800g
+        "bigc": "ลิงก์บิ๊กซี...",
+        "lotus": "ลิงก์โลตัส...",
+        "seven": "ลิงก์เซเว่น...",
+        "cj": "ลิงก์ซีเจ..."
+    }
+}
+product_urls = {
     1: { # ทิพรสน้ำปลาขวดเพท 700cc
         "bigc": "https://www.bigc.co.th/product/tiparos-fish-sauce-pet-bottle-700-ml.593",
         "lotus": "",
-        "seven": "",
+        "seven": "https://www.allonline.7eleven.co.th/p/%E0%B8%97%E0%B8%B4%E0%B8%9E%E0%B8%A3%E0%B8%AA-%E0%B8%99%E0%B9%89%E0%B8%B3%E0%B8%9B%E0%B8%A5%E0%B8%B2%E0%B9%81%E0%B8%97%E0%B9%89-700-%E0%B8%A1%E0%B8%A5/481898/",
+        "seven_pack": 2, # <-- เพิ่มคำสั่งนี้เพื่อบอกว่าขายแพ็ค 2 ชิ้น หุ่นยนต์จะเอาไปหาร 2 ให้อัตโนมัติ
         "cj": ""
     },
     2: { # เมกาเชฟน้ำปลา 500cc
@@ -189,42 +219,58 @@ for item in appData:
         # --- ตรวจสอบ Big C ---
         if urls.get("bigc"):
             new_price = get_bigc_price(urls["bigc"])
-            if new_price is not None and float(item.get('bigc', 0)) != new_price:
-                print(f"  -> 📉 อัปเดต Big C เป็น: {new_price} บาท (เดิม {item.get('bigc')})")
-                item['bigc'] = new_price
-                updates_made = True
-            elif new_price is not None:
-                print(f"  -> ➖ Big C ราคาคงเดิม: {new_price} บาท")
+            if new_price is not None:
+                pack_size = urls.get("bigc_pack", 1) # ถ้าไม่ได้ใส่ _pack ไว้ จะหารด้วย 1 (คือราคาเดิม)
+                final_price = round(new_price / pack_size, 2)
+                
+                if float(item.get('bigc', 0)) != final_price:
+                    print(f"  -> 📉 อัปเดต Big C เป็น: {final_price} บาท (ดึงมา {new_price} หาร {pack_size})")
+                    item['bigc'] = final_price
+                    updates_made = True
+                else:
+                    print(f"  -> ➖ Big C ราคาคงเดิม: {final_price} บาท")
 
         # --- ตรวจสอบ Lotus ---
         if urls.get("lotus"):
             new_price = get_lotus_price(urls["lotus"])
-            if new_price is not None and float(item.get('lotus', 0)) != new_price:
-                print(f"  -> 📉 อัปเดต Lotus เป็น: {new_price} บาท (เดิม {item.get('lotus')})")
-                item['lotus'] = new_price
-                updates_made = True
-            elif new_price is not None:
-                print(f"  -> ➖ Lotus ราคาคงเดิม: {new_price} บาท")
+            if new_price is not None:
+                pack_size = urls.get("lotus_pack", 1)
+                final_price = round(new_price / pack_size, 2)
+                
+                if float(item.get('lotus', 0)) != final_price:
+                    print(f"  -> 📉 อัปเดต Lotus เป็น: {final_price} บาท (ดึงมา {new_price} หาร {pack_size})")
+                    item['lotus'] = final_price
+                    updates_made = True
+                else:
+                    print(f"  -> ➖ Lotus ราคาคงเดิม: {final_price} บาท")
 
         # --- ตรวจสอบ 7-Eleven ---
         if urls.get("seven"):
             new_price = get_seven_price(urls["seven"])
-            if new_price is not None and float(item.get('seven', 0)) != new_price:
-                print(f"  -> 📉 อัปเดต 7-Eleven เป็น: {new_price} บาท (เดิม {item.get('seven')})")
-                item['seven'] = new_price
-                updates_made = True
-            elif new_price is not None:
-                print(f"  -> ➖ 7-Eleven ราคาคงเดิม: {new_price} บาท")
+            if new_price is not None:
+                pack_size = urls.get("seven_pack", 1)
+                final_price = round(new_price / pack_size, 2)
+                
+                if float(item.get('seven', 0)) != final_price:
+                    print(f"  -> 📉 อัปเดต 7-Eleven เป็น: {final_price} บาท (ดึงมา {new_price} หาร {pack_size})")
+                    item['seven'] = final_price
+                    updates_made = True
+                else:
+                    print(f"  -> ➖ 7-Eleven ราคาคงเดิม: {final_price} บาท")
 
         # --- ตรวจสอบ CJ ---
         if urls.get("cj"):
             new_price = get_cj_price(urls["cj"])
-            if new_price is not None and float(item.get('cj', 0)) != new_price:
-                print(f"  -> 📉 อัปเดต CJ เป็น: {new_price} บาท (เดิม {item.get('cj')})")
-                item['cj'] = new_price
-                updates_made = True
-            elif new_price is not None:
-                print(f"  -> ➖ CJ ราคาคงเดิม: {new_price} บาท")
+            if new_price is not None:
+                pack_size = urls.get("cj_pack", 1)
+                final_price = round(new_price / pack_size, 2)
+                
+                if float(item.get('cj', 0)) != final_price:
+                    print(f"  -> 📉 อัปเดต CJ เป็น: {final_price} บาท (ดึงมา {new_price} หาร {pack_size})")
+                    item['cj'] = final_price
+                    updates_made = True
+                else:
+                    print(f"  -> ➖ CJ ราคาคงเดิม: {final_price} บาท")
         
         # หน่วงเวลา 2 วินาที ป้องกันโดนบล็อก
         time.sleep(2)
