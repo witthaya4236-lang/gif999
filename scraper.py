@@ -1,9 +1,10 @@
 import json
-import requests
+import cloudscraper
 from bs4 import BeautifulSoup
 import datetime
 import sys
 import time
+import random
 
 print(f"🚀 เริ่มต้นการทำงานของหุ่นยนต์ดึงราคา วันที่: {datetime.datetime.now()}")
 
@@ -16,16 +17,26 @@ except FileNotFoundError:
     print("❌ ไม่พบไฟล์ prices.json โปรดตรวจสอบว่ามีไฟล์นี้อยู่ในระบบ")
     sys.exit(1)
 
+# สร้างหุ่นยนต์แบบเนียนพิเศษ (Bypass Cloudflare & Bot Protection)
+# วิธีนี้จะทำให้เว็บห้างคิดว่าเราใช้ Google Chrome เข้าดูปกติ ไม่ใช่หุ่นยนต์
+scraper = cloudscraper.create_scraper(
+    browser={
+        'browser': 'chrome',
+        'platform': 'windows',
+        'desktop': True
+    }
+)
+
 # ==========================================
-# 2. ฟังก์ชันดึงราคาของแต่ละห้าง (Web Scrapers)
+# 2. ฟังก์ชันดึงราคาของแต่ละห้าง
 # ==========================================
 
 def get_bigc_price(url):
-    headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'}
     try:
-        response = requests.get(url, headers=headers, timeout=15)
+        response = scraper.get(url, timeout=20)
         soup = BeautifulSoup(response.text, 'html.parser')
         
+        # 1. หาราคาจาก Schema ก่อน (มักจะเป็นราคาอัปเดตล่าสุด/ราคาโปรโมชั่น)
         ld_json_tags = soup.find_all('script', type='application/ld+json')
         for tag in ld_json_tags:
             if tag.string:
@@ -40,6 +51,7 @@ def get_bigc_price(url):
                 except:
                     pass
         
+        # 2. หาราคาจากโครงสร้างเว็บ React ของ Big C
         script_tag = soup.find('script', id='__NEXT_DATA__')
         if script_tag:
             data = json.loads(script_tag.string)
@@ -50,87 +62,64 @@ def get_bigc_price(url):
             if promo_price and float(promo_price) > 0: return float(promo_price)
             elif normal_price: return float(normal_price)
     except Exception as e:
-        print(f"  ❌ Big C Error: {e}")
+        print(f"  ❌ Big C Error: ไม่สามารถเจาะระบบได้หรือลิงก์มีปัญหา ({e})")
     return None
 
 def get_lotus_price(url):
-    headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'}
     try:
-        response = requests.get(url, headers=headers, timeout=15)
+        response = scraper.get(url, timeout=20)
         soup = BeautifulSoup(response.text, 'html.parser')
         price_tag = soup.find('span', class_='price-value') 
         if price_tag:
             return float(price_tag.text.replace('฿', '').replace(',', '').strip())
     except Exception as e:
-        print(f"  ❌ Lotus Error: {e}")
+        print(f"  ❌ Lotus Error: ไม่สามารถดึงข้อมูลได้ ({e})")
     return None
 
 def get_seven_price(url):
-    headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'}
     try:
-        response = requests.get(url, headers=headers, timeout=15)
+        response = scraper.get(url, timeout=20)
         soup = BeautifulSoup(response.text, 'html.parser')
         price_tag = soup.find('div', class_='price') 
         if price_tag:
             return float(price_tag.text.replace('฿', '').replace(',', '').strip())
     except Exception as e:
-        print(f"  ❌ 7-Eleven Error: {e}")
+        print(f"  ❌ 7-Eleven Error: ไม่สามารถดึงข้อมูลได้ ({e})")
     return None
 
 def get_cj_price(url):
-    headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'}
     try:
-        response = requests.get(url, headers=headers, timeout=15)
+        response = scraper.get(url, timeout=20)
         soup = BeautifulSoup(response.text, 'html.parser')
         price_tag = soup.find('span', class_='sale-price') 
         if price_tag:
             return float(price_tag.text.replace('฿', '').replace(',', '').strip())
     except Exception as e:
-        print(f"  ❌ CJ Error: {e}")
+        print(f"  ❌ CJ Error: ไม่สามารถดึงข้อมูลได้ ({e})")
     return None
 
 # ==========================================
-# 3. พื้นที่ใส่ลิงก์สินค้า (นำลิงก์มาใส่ใน "")
+# 3. พื้นที่ใส่ลิงก์สินค้า
 # ==========================================
 product_urls = {
     1: { # ID 1 = ทิพรสน้ำปลาขวดเพท 700cc
         "bigc": "https://www.bigc.co.th/product/tiparos-fish-sauce-pet-bottle-700-ml.593",
         "lotus": "https://www.lotuss.com/th/product/tiparos-fish-sauce-700ml-49301",
         "seven": "https://www.allonline.7eleven.co.th/p/%E0%B8%97%E0%B8%B4%E0%B8%9E%E0%B8%A3%E0%B8%AA-%E0%B8%99%E0%B9%89%E0%B8%B3%E0%B8%9B%E0%B8%A5%E0%B8%B2%E0%B9%81%E0%B8%97%E0%B9%89-700-%E0%B8%A1%E0%B8%A5/481898/",
-        "seven_pack": 2, # ขายแพ็ค 2 ชิ้น
+        "seven_pack": 2, # ขายแพ็ค 2 ชิ้น หุ่นยนต์จะหาร 2 ให้อัตโนมัติ
         "cj": ""
     },
     2: { # ID 2 = เมกาเชฟน้ำปลา 500cc
         "bigc": "https://www.bigc.co.th/product/megachef-premium-fish-sauce-500-ml.1689",
         "lotus": "https://www.lotuss.com/th/product/megachef-premium-fish-sauce-500ml-18011268",
         "seven": "https://www.allonline.7eleven.co.th/p/%E0%B9%80%E0%B8%A1%E0%B8%81%E0%B8%B2%E0%B9%80%E0%B8%8A%E0%B8%9F-%E0%B8%99%E0%B9%89%E0%B8%B3%E0%B8%9B%E0%B8%A5%E0%B8%B2%E0%B9%81%E0%B8%97%E0%B9%89-500-%E0%B8%A1%E0%B8%A5-%E0%B9%81%E0%B8%9E%E0%B9%87%E0%B8%81-3-%E0%B8%8A%E0%B8%B4%E0%B9%89%E0%B8%99/580636/",
-        "seven_pack": 3, # ขายแพ็ค 3 ชิ้น
+        "seven_pack": 3, # ขายแพ็ค 3 ชิ้น หุ่นยนต์จะหาร 3 ให้อัตโนมัติ
         "cj": ""
     },
-    3: { # ID 3 = ปลาหมึกน้ำปลาแท้ขวดเพทฉลากเหลือง 700ml
-        "bigc": "",
-        "lotus": "",
-        "seven": "",
-        "cj": ""
-    },
-    4: { # ID 4 = ปลาหมึกน้ำปลาแท้ขวดเพทฉลากเขียว 700ml
-        "bigc": "",
-        "lotus": "",
-        "seven": "",
-        "cj": ""
-    },
-    5: { # ID 5 = แม่ครัวฉลากทองซอสหอย 300cc
-        "bigc": "",
-        "lotus": "",
-        "seven": "",
-        "cj": ""
-    },
-    10: { # ID 10 = เด็กสมบูรณ์ซอสหอยนางรมสูตรเข้มข้น 800g
-        "bigc": "",
-        "lotus": "",
-        "seven": "",
-        "cj": ""
-    }
+    3: { "bigc": "", "lotus": "", "seven": "", "cj": "" },
+    4: { "bigc": "", "lotus": "", "seven": "", "cj": "" },
+    5: { "bigc": "", "lotus": "", "seven": "", "cj": "" },
+    10: { "bigc": "", "lotus": "", "seven": "", "cj": "" }
 }
 
 # ==========================================
@@ -145,59 +134,56 @@ for item in appData:
         urls = product_urls[item_id]
         print(f"\n📦 กำลังเช็คราคา: {item['name']}")
         
-        # --- ตรวจสอบ Big C ---
         if urls.get("bigc"):
             new_price = get_bigc_price(urls["bigc"])
             if new_price is not None:
                 pack_size = urls.get("bigc_pack", 1)
                 final_price = round(new_price / pack_size, 2)
                 if float(item.get('bigc', 0)) != final_price:
-                    print(f"  -> 📉 อัปเดต Big C เป็น: {final_price} บาท (ดึงมา {new_price} หาร {pack_size})")
+                    print(f"  -> 📉 อัปเดต Big C เป็น: {final_price} บาท (จากเดิม {item.get('bigc')} บาท)")
                     item['bigc'] = final_price
                     updates_made = True
                 else:
                     print(f"  -> ➖ Big C ราคาคงเดิม: {final_price} บาท")
 
-        # --- ตรวจสอบ Lotus ---
         if urls.get("lotus"):
             new_price = get_lotus_price(urls["lotus"])
             if new_price is not None:
                 pack_size = urls.get("lotus_pack", 1)
                 final_price = round(new_price / pack_size, 2)
                 if float(item.get('lotus', 0)) != final_price:
-                    print(f"  -> 📉 อัปเดต Lotus เป็น: {final_price} บาท (ดึงมา {new_price} หาร {pack_size})")
+                    print(f"  -> 📉 อัปเดต Lotus เป็น: {final_price} บาท (จากเดิม {item.get('lotus')} บาท)")
                     item['lotus'] = final_price
                     updates_made = True
                 else:
                     print(f"  -> ➖ Lotus ราคาคงเดิม: {final_price} บาท")
 
-        # --- ตรวจสอบ 7-Eleven ---
         if urls.get("seven"):
             new_price = get_seven_price(urls["seven"])
             if new_price is not None:
                 pack_size = urls.get("seven_pack", 1)
                 final_price = round(new_price / pack_size, 2)
                 if float(item.get('seven', 0)) != final_price:
-                    print(f"  -> 📉 อัปเดต 7-Eleven เป็น: {final_price} บาท (ดึงมา {new_price} หาร {pack_size})")
+                    print(f"  -> 📉 อัปเดต 7-Eleven เป็น: {final_price} บาท (จากเดิม {item.get('seven')} บาท)")
                     item['seven'] = final_price
                     updates_made = True
                 else:
                     print(f"  -> ➖ 7-Eleven ราคาคงเดิม: {final_price} บาท")
 
-        # --- ตรวจสอบ CJ ---
         if urls.get("cj"):
             new_price = get_cj_price(urls["cj"])
             if new_price is not None:
                 pack_size = urls.get("cj_pack", 1)
                 final_price = round(new_price / pack_size, 2)
                 if float(item.get('cj', 0)) != final_price:
-                    print(f"  -> 📉 อัปเดต CJ เป็น: {final_price} บาท (ดึงมา {new_price} หาร {pack_size})")
+                    print(f"  -> 📉 อัปเดต CJ เป็น: {final_price} บาท (จากเดิม {item.get('cj')} บาท)")
                     item['cj'] = final_price
                     updates_made = True
                 else:
                     print(f"  -> ➖ CJ ราคาคงเดิม: {final_price} บาท")
         
-        time.sleep(2)
+        # หน่วงเวลา 3-5 วินาที เพื่อไม่ให้เว็บปลายทางสงสัย
+        time.sleep(random.uniform(3, 5))
 
 # ==========================================
 # 5. บันทึกข้อมูลกลับลงไฟล์ prices.json
