@@ -104,6 +104,22 @@ def get_lotus_price(url):
         title_text = soup.title.text if soup.title else ""
         auto_pack = detect_pack_size(title_text)
         
+        # 1. ดึงจาก Schema.org ก่อน (แม่นยำที่สุด ป้องกันเว็บโลตัสเปลี่ยนคลาส)
+        ld_json_tags = soup.find_all('script', type='application/ld+json')
+        for tag in ld_json_tags:
+            if tag.string:
+                try:
+                    data = json.loads(tag.string)
+                    if isinstance(data, list):
+                        for item in data:
+                            if item.get('@type') == 'Product' and 'offers' in item:
+                                return float(item['offers']['price']), auto_pack
+                    elif data.get('@type') == 'Product' and 'offers' in data:
+                        return float(data['offers']['price']), auto_pack
+                except:
+                    pass
+        
+        # 2. ถ้าหาไม่เจอ ค่อยมาหาจากคลาส HTML (เผื่อฉุกเฉิน)
         price_tag = soup.find('span', class_='price-value') 
         if price_tag:
             return extract_number(price_tag.text), auto_pack
@@ -178,7 +194,7 @@ product_urls = {
     },
     3: { # ID 3 = ปลาหมึกน้ำปลาแท้ขวดเพทฉลากเหลือง 700ml
         "bigc": "https://www.bigc.co.th/product/squid-fish-sauce-yellow-label-700-cc.9827?srsltid=AfmBOooB62UHLqCkfKMk71eTiqxm6C8TbOxoPneK7o3W_mP2VuhVbg9m",
-        "lotus": "https://www.lotuss.com/th/product/squid-fish-sauce-700ml-71754261?srsltid=AfmBOopq8mPZNzavj1dApTeC3l8YA8JULfR7HwwQOKmbPxubE_-GIqJw",
+        "lotus": "https://www.lotuss.com/th/product/squid-fish-sauce-700ml-71754261",
         "seven": "https://www.allonline.7eleven.co.th/p/%E0%B8%9B%E0%B8%A5%E0%B8%B2%E0%B8%AB%E0%B8%A1%E0%B8%B6%E0%B8%81-%E0%B8%99%E0%B9%89%E0%B8%B3%E0%B8%9B%E0%B8%A5%E0%B8%B2%E0%B9%81%E0%B8%97%E0%B9%89%E0%B8%89%E0%B8%A5%E0%B8%B2%E0%B8%81%E0%B9%80%E0%B8%AB%E0%B8%A5%E0%B8%B7%E0%B8%AD%E0%B8%87-700-%E0%B8%A1%E0%B8%A5/479516/",
         "seven_pack": 2, # บังคับหาร 2 เพราะเว็บ 7-11 ลืมเขียนคำว่าแพ็คคู่ในชื่อสินค้า
         "cj": ""
