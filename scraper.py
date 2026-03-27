@@ -36,12 +36,20 @@ def extract_number(text):
     return float(match.group()) if match else None
 
 def detect_pack_size(text):
-    """ฟังก์ชันออโต้สแกนหาตัวหาร: ค้นหาคำว่า แพ็ค 2, แพ็ก 3, x4, pack 6 จากชื่อสินค้า"""
+    """ฟังก์ชันออโต้สแกนหาตัวหาร: ค้นหาคำว่า แพ็ค 2, แพ็ก 3, x4, pack 6, 2 ขวด, 3 ขวด, 3 ชิ้น จากชื่อสินค้า"""
     if not text: return 1
-    match = re.search(r'(?:แพ็ค|แพ็ก|แพค|pack|x)\s*(?:ละ\s*)?([2-9]|[1-9]\d)(?!\d)', text, re.IGNORECASE)
-    if match:
-        return int(match.group(1))
-    return 1 # ถ้าไม่เจอคำว่าแพ็ค ให้หาร 1 (ราคาปกติ)
+    
+    # 1. หาคำรูปแบบ แพ็ค 2, แพ็ก 3, x4, pack 6
+    match1 = re.search(r'(?:แพ็ค|แพ็ก|แพค|pack|x)\s*(?:ละ\s*)?([2-9]|[1-9]\d)(?!\d)', text, re.IGNORECASE)
+    if match1:
+        return int(match1.group(1))
+        
+    # 2. หาคำรูปแบบ 2 ขวด, 3 ชิ้น, 4 ถุง, 6 กระป๋อง
+    match2 = re.search(r'([2-9]|[1-9]\d)\s*(?:ขวด|ชิ้น|ถุง|กระป๋อง|กล่อง)', text)
+    if match2:
+        return int(match2.group(1))
+        
+    return 1 # ถ้าไม่เจอคำว่าแพ็ค/ขวด/ชิ้น ให้หาร 1 (ราคาปกติ)
 
 # ==========================================
 # 3. ฟังก์ชันดึงราคาของแต่ละห้าง
@@ -181,52 +189,48 @@ product_urls = {
         "seven": "https://www.allonline.7eleven.co.th/p/%E0%B9%81%E0%B8%A1%E0%B9%88%E0%B8%84%E0%B8%A3%E0%B8%B1%E0%B8%A7-%E0%B8%8B%E0%B8%AD%E0%B8%AA%E0%B8%AB%E0%B8%AD%E0%B8%A2%E0%B8%99%E0%B8%B2%E0%B8%87%E0%B8%A3%E0%B8%A1-300-%E0%B8%A1%E0%B8%A5-%E0%B9%81%E0%B8%9E%E0%B9%87%E0%B8%81-3-%E0%B8%8A%E0%B8%B4%E0%B9%89%E0%B8%99/470680/?srsltid=AfmBOopFLXAnHgffcIx7xU42Gn0uVXKNjFaGSfWW4Vc8kNOV3MnEPC8A",
         "cj": ""
     },
-    6: { # ID 6 = ปลาหมึกน้ำปลาแท้ขวดเพทฉลากเหลือง 700ml
+    6: { # ID 6 = 
         "bigc": "",
         "lotus": "",
         "seven": "",
         "cj": ""
     },
-    7: { # ID 7 = ปลาหมึกน้ำปลาแท้ขวดเพทฉลากเหลือง 700ml
+    7: { # ID 7 = 
         "bigc": "",
         "lotus": "",
         "seven": "",
         "cj": ""
     },
-    8: { # ID 8 = ปลาหมึกน้ำปลาแท้ขวดเพทฉลากเหลือง 700ml
+    8: { # ID 8 = 
         "bigc": "",
         "lotus": "",
         "seven": "",
         "cj": ""
     },
-    9: { # ID 9 = ปลาหมึกน้ำปลาแท้ขวดเพทฉลากเหลือง 700ml
+    9: { # ID 9 = 
         "bigc": "",
         "lotus": "",
         "seven": "",
         "cj": ""
     },
-    10: { # ID 10 = ปลาหมึกน้ำปลาแท้ขวดเพทฉลากเหลือง 700ml
+    10: { # ID 10 = 
         "bigc": "",
         "lotus": "",
         "seven": "",
         "cj": ""
     },
-    11: { # ID 11 = ปลาหมึกน้ำปลาแท้ขวดเพทฉลากเหลือง 700ml
+    11: { # ID 11 = 
         "bigc": "",
         "lotus": "",
         "seven": "",
         "cj": ""
     },
-    12: { # ID 12 = ปลาหมึกน้ำปลาแท้ขวดเพทฉลากเหลือง 700ml
+    12: { # ID 12 = 
         "bigc": "",
         "lotus": "",
         "seven": "",
         "cj": ""
-    },
-    3: { "bigc": "", "lotus": "", "seven": "", "cj": "" },
-    4: { "bigc": "", "lotus": "", "seven": "", "cj": "" },
-    5: { "bigc": "", "lotus": "", "seven": "", "cj": "" },
-    10: { "bigc": "", "lotus": "", "seven": "", "cj": "" }
+    }
 }
 
 # ==========================================
