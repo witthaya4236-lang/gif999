@@ -163,6 +163,66 @@ product_urls = {
         "seven": "https://www.allonline.7eleven.co.th/p/%E0%B9%80%E0%B8%A1%E0%B8%81%E0%B8%B2%E0%B9%80%E0%B8%8A%E0%B8%9F-%E0%B8%99%E0%B9%89%E0%B8%B3%E0%B8%9B%E0%B8%A5%E0%B8%B2%E0%B9%81%E0%B8%97%E0%B9%89-500-%E0%B8%A1%E0%B8%A5-%E0%B9%81%E0%B8%9E%E0%B9%87%E0%B8%81-3-%E0%B8%8A%E0%B8%B4%E0%B9%89%E0%B8%99/580636/",
         "cj": ""
     },
+    3: { # ID 3 = ปลาหมึกน้ำปลาแท้ขวดเพทฉลากเหลือง 700ml
+        "bigc": "https://www.bigc.co.th/product/squid-fish-sauce-yellow-label-700-cc.9827",
+        "lotus": "https://www.lotuss.com/th/product/squid-fish-sauce-700ml-71754261?srsltid=AfmBOoqkzZU8IIGI5f5cETIW794Axodkr-mr4EcTb5zg19durBs05NeO",
+        "seven": "https://www.allonline.7eleven.co.th/p/%E0%B8%9B%E0%B8%A5%E0%B8%B2%E0%B8%AB%E0%B8%A1%E0%B8%B6%E0%B8%81-%E0%B8%99%E0%B9%89%E0%B8%B3%E0%B8%9B%E0%B8%A5%E0%B8%B2%E0%B9%81%E0%B8%97%E0%B9%89%E0%B8%89%E0%B8%A5%E0%B8%B2%E0%B8%81%E0%B9%80%E0%B8%AB%E0%B8%A5%E0%B8%B7%E0%B8%AD%E0%B8%87-700-%E0%B8%A1%E0%B8%A5/479516/?p=0&q=%E0%B8%9B%E0%B8%A5%E0%B8%B2%E0%B8%AB%E0%B8%A1%E0%B8%B6%E0%B8%81%20%E0%B8%99%E0%B9%89%E0%B8%B3%E0%B8%9B%E0%B8%A5%E0%B8%B2%E0%B9%81%E0%B8%97%E0%B9%89%E0%B8%89%E0%B8%A5%E0%B8%B2%E0%B8%81%E0%B9%80%E0%B8%AB%E0%B8%A5%E0%B8%B7%E0%B8%AD%E0%B8%87%20700%20%E0%B8%A1%E0%B8%A5.&view=0&requestId=Oz9GVRx1Qzed-WGGpIFdCg&categoryId=178730951#itemId=390088_0",
+        "cj": ""
+    },
+    4: { # ID 4 = ปลาหมึกน้ำปลาแท้ขวดเพทฉลากเขียว 700ml
+        "bigc": "https://www.bigc.co.th/product/squid-s-fish-sauce-genuine-fish-sauce-700-ml.234?region_id=ALL&utm_source=google&utm_medium=pmax&utm_campaign=idacbkk_ecom_bigc_gg_pmax_top-category_fresh-food_con&utm_content=alway-on&gad_source=1&gad_campaignid=20067109165&gbraid=0AAAAAo8MlEjN06uemFONO7mzO2humgNKy&gclid=CjwKCAjwspPOBhB9EiwATFbi5EL4-FeiR2R4PRqJE9lUdcVTgH-f67dpv_c72f4EB0SX-ejNOU5LKBoC3UcQAvD_BwE",
+        "lotus": "https://www.lotuss.com/th/product/squid-fish-sauce-700ml-7314299?gad_source=1&gad_campaignid=23683279917&gbraid=0AAAAADkX399SC-I8hFZur-ysZMXnRJleq&gclid=CjwKCAjwspPOBhB9EiwATFbi5PIEPZ74dqOP7kGZPUiMbp9CNifAThbXWX-7AE4s5f6SLChqRIAg7BoC31sQAvD_BwE",
+        "seven": "https://www.allonline.7eleven.co.th/p/%E0%B8%9B%E0%B8%A5%E0%B8%B2%E0%B8%AB%E0%B8%A1%E0%B8%B6%E0%B8%81-%E0%B8%99%E0%B9%89%E0%B8%B3%E0%B8%9B%E0%B8%A5%E0%B8%B2%E0%B9%81%E0%B8%97%E0%B9%89-700-%E0%B8%A1%E0%B8%A5/475234/?srsltid=AfmBOopcwW2zz2voscixPStHLGsxvV1fE_-jcA8l5NI5tO5Wu_kB2NC2",
+        "cj": ""
+    },
+    5: { # ID 5 = แม่ครัวฉลากทองซอสหอย 300cc
+        "bigc": "https://www.bigc.co.th/product/maekrua-brand-yster-sauce-300.238?srsltid=AfmBOooLpWBQfoSGz2oYVL90x8t8dn29CIKOvZW8Pj8f9X8lfbwSO2qL",
+        "lotus": "https://www.lotuss.com/th/product/maekrua-oyster-sauce-300ml-49611?gad_source=1&gad_campaignid=23683279917&gbraid=0AAAAADkX399SC-I8hFZur-ysZMXnRJleq&gclid=CjwKCAjwspPOBhB9EiwATFbi5Brels2dxToKWF6K7udd0YeOXbsxufocUMSXCpSaVms8yoYrxVphdxoCqkgQAvD_BwE",
+        "seven": "https://www.allonline.7eleven.co.th/p/%E0%B9%81%E0%B8%A1%E0%B9%88%E0%B8%84%E0%B8%A3%E0%B8%B1%E0%B8%A7-%E0%B8%8B%E0%B8%AD%E0%B8%AA%E0%B8%AB%E0%B8%AD%E0%B8%A2%E0%B8%99%E0%B8%B2%E0%B8%87%E0%B8%A3%E0%B8%A1-300-%E0%B8%A1%E0%B8%A5-%E0%B9%81%E0%B8%9E%E0%B9%87%E0%B8%81-3-%E0%B8%8A%E0%B8%B4%E0%B9%89%E0%B8%99/470680/?srsltid=AfmBOopFLXAnHgffcIx7xU42Gn0uVXKNjFaGSfWW4Vc8kNOV3MnEPC8A",
+        "cj": ""
+    },
+    6: { # ID 6 = ปลาหมึกน้ำปลาแท้ขวดเพทฉลากเหลือง 700ml
+        "bigc": "",
+        "lotus": "",
+        "seven": "",
+        "cj": ""
+    },
+    7: { # ID 7 = ปลาหมึกน้ำปลาแท้ขวดเพทฉลากเหลือง 700ml
+        "bigc": "",
+        "lotus": "",
+        "seven": "",
+        "cj": ""
+    },
+    8: { # ID 8 = ปลาหมึกน้ำปลาแท้ขวดเพทฉลากเหลือง 700ml
+        "bigc": "",
+        "lotus": "",
+        "seven": "",
+        "cj": ""
+    },
+    9: { # ID 9 = ปลาหมึกน้ำปลาแท้ขวดเพทฉลากเหลือง 700ml
+        "bigc": "",
+        "lotus": "",
+        "seven": "",
+        "cj": ""
+    },
+    10: { # ID 10 = ปลาหมึกน้ำปลาแท้ขวดเพทฉลากเหลือง 700ml
+        "bigc": "",
+        "lotus": "",
+        "seven": "",
+        "cj": ""
+    },
+    11: { # ID 11 = ปลาหมึกน้ำปลาแท้ขวดเพทฉลากเหลือง 700ml
+        "bigc": "",
+        "lotus": "",
+        "seven": "",
+        "cj": ""
+    },
+    12: { # ID 12 = ปลาหมึกน้ำปลาแท้ขวดเพทฉลากเหลือง 700ml
+        "bigc": "",
+        "lotus": "",
+        "seven": "",
+        "cj": ""
+    },
     3: { "bigc": "", "lotus": "", "seven": "", "cj": "" },
     4: { "bigc": "", "lotus": "", "seven": "", "cj": "" },
     5: { "bigc": "", "lotus": "", "seven": "", "cj": "" },
