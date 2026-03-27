@@ -1,0 +1,38 @@
+name: Daily Price Updater
+
+on:
+  schedule:
+    # ตั้งเวลาให้รันอัตโนมัติทุกๆ 6 โมงเช้าเวลาไทย (UTC 23:00)
+    - cron: '0 23 * * *'
+  workflow_dispatch: # ปุ่มสำหรับให้เรากดรันเองได้ตลอดเวลา
+
+# อนุญาตให้บอทเซฟไฟล์ทับลงใน GitHub ของเราได้
+permissions:
+  contents: write
+
+jobs:
+  update-data:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: 1. โหลดโค้ดทั้งหมดมาที่หุ่นยนต์
+      uses: actions/checkout@v4
+
+    - name: 2. เตรียมโปรแกรม Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+
+    - name: 3. ติดตั้งเครื่องมือเสริม
+      run: pip install -r requirements.txt
+
+    - name: 4. สั่งหุ่นยนต์วิ่งไปดึงราคาเว็บคู่แข่ง
+      run: python scraper.py
+
+    - name: 5. บันทึกและอัปเดตไฟล์ prices.json ขึ้น GitHub
+      run: |
+        git config --global user.name 'github-actions[bot]'
+        git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+        git add prices.json
+        # เช็คว่ามีไฟล์เปลี่ยนไหม ถ้ามีค่อยกด Save และ Push ขึ้นไป
+        git diff --quiet && git diff --staged --quiet || (git commit -m "🤖 อัปเดตราคาตลาดอัตโนมัติ" && git push)
