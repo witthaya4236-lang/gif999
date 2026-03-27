@@ -1,0 +1,14 @@
+[
+    { "id": 1, "category": "FISH SAUCE", "name": "ทิพรสน้ำปลาขวดเพท 700cc", "cj": 29, "lotus": 29.5, "bigc": 29, "seven": 29.5 },
+    { "id": 2, "category": "FISH SAUCE", "name": "เมกาเชฟน้ำปลา 500cc", "cj": 39, "lotus": 42, "bigc": 39, "seven": 39 },
+    { "id": 3, "category": "FISH SAUCE", "name": "ปลาหมึกน้ำปลาแท้ขวดเพทฉลากเหลือง 700ml", "cj": 21, "lotus": 21, "bigc": 21, "seven": 24 },
+    { "id": 4, "category": "FISH SAUCE", "name": "ปลาหมึกน้ำปลาแท้ขวดเพทฉลากเขียว 700ml", "cj": 29, "lotus": 27, "bigc": 27, "seven": 29 },
+    { "id": 5, "category": "SAUCE", "name": "แม่ครัวฉลากทองซอสหอย 300cc", "cj": 37, "lotus": 37, "bigc": 36, "seven": 37 },
+    { "id": 6, "category": "SAUCE", "name": "แม่ครัวฉลากทองซอสหอย 600cc", "cj": 49, "lotus": 52, "bigc": 50, "seven": 52 },
+    { "id": 7, "category": "SAUCE", "name": "ภูเขาทองซอสปรุงรสฝาเขียวเพท 1L", "cj": 53, "lotus": 56, "bigc": 53, "seven": 56 },
+    { "id": 8, "category": "SAUCE", "name": "แม็กกี้ซอสปรุงรส 680cc", "cj": 34.5, "lotus": 36, "bigc": 34.5, "seven": 42 },
+    { "id": 9, "category": "SAUCE", "name": "แม็กกี้ซอสปรุงอาหารสูตรเข้มเข้าเนื้อ 680cc", "cj": 34.5, "lotus": 36, "bigc": 38, "seven": 42 },
+    { "id": 10, "category": "SAUCE", "name": "เด็กสมบูรณ์ซอสหอยนางรมสูตรเข้มข้น 800g", "cj": 47, "lotus": 29, "bigc": 29, "seven": 39 },
+    { "id": 11, "category": "SAUCE", "name": "เด็กสมบูรณ์ซีอิ๊วขาวสูตร1 700cc", "cj": 55, "lotus": 47, "bigc": 44, "seven": 45 },
+    { "id": 12, "category": "SAUCE", "name": "เด็กสมบูรณ์ซีอิ๊วขาวสูตร1 1000cc", "cj": 62, "lotus": 65, "bigc": 65, "seven": 66 }
+]
