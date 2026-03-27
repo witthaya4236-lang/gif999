@@ -4,99 +4,174 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>KVI Product Price Battle Dashboard</title>
-    <!-- โหลด Tailwind CSS ผ่าน CDN สำหรับการจัดหน้า -->
+    <!-- โหลด Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- โหลด Lucide Icons สำหรับรูปไอคอนต่างๆ -->
+    <!-- โหลด Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- โหลด Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap');
-        body { font-family: 'Sarabun', sans-serif; }
+        body { font-family: 'Prompt', sans-serif; }
+        /* ซ่อน Scrollbar แต่ยังเลื่อนได้ สำหรับ Table */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#0f172a', // Slate 900
+                        brand: '#f97316', // Orange 500 (CJ Theme Hint)
+                    }
+                }
+            }
+        }
+    </script>
 </head>
-<body class="min-h-screen bg-slate-50 p-4 md:p-8 text-slate-800">
+<body class="min-h-screen bg-slate-50 text-slate-800 pb-10">
 
-    <div class="max-w-7xl mx-auto space-y-6">
+    <!-- Top Navigation -->
+    <nav class="bg-white border-b border-slate-200 sticky top-0 z-10 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center gap-3">
+                    <div class="bg-primary text-white p-2 rounded-lg">
+                        <i data-lucide="bar-chart-2" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold leading-none text-primary">KVI Price Battle</h1>
+                        <span class="text-xs text-slate-500 font-medium">Market Intelligence Dashboard</span>
+                    </div>
+                </div>
+                <div class="text-sm text-slate-500 flex items-center gap-2 hidden md:flex" id="statusContainer">
+                    <span class="relative flex h-3 w-3">
+                      <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                      <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+                    </span>
+                    ข้อมูลล่าสุด: <span id="lastUpdateText" class="font-medium text-slate-700">กำลังโหลด...</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8 space-y-6">
         
-        <!-- Header Section -->
-        <div class="flex flex-col md:flex-row justify-between items-start md:items-center bg-white p-6 rounded-xl shadow-sm border border-slate-200 gap-4">
-            <div>
-                <h1 class="text-2xl font-bold text-slate-800 flex items-center gap-2">
-                    📊 KVI Product Price Battle
-                </h1>
-                <p class="text-slate-500 mt-1 text-sm flex items-center gap-1" id="statusText">
-                    <i data-lucide="check-circle-2" class="w-4 h-4 text-green-500"></i>
-                    ระบบแสดงผลข้อมูลราคาคงที่
-                </p>
+        <!-- Summary Cards Section -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <!-- Total -->
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4 transition-transform hover:-translate-y-1">
+                <div class="bg-blue-50 text-blue-600 p-3 rounded-xl">
+                    <i data-lucide="box" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-slate-500">สินค้าทั้งหมด</p>
+                    <h3 class="text-2xl font-bold text-slate-800" id="sumTotal">0</h3>
+                </div>
+            </div>
+            <!-- Wins -->
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4 transition-transform hover:-translate-y-1">
+                <div class="bg-emerald-50 text-emerald-600 p-3 rounded-xl">
+                    <i data-lucide="trophy" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-slate-500">ราคาถูกกว่าคู่แข่ง (Win)</p>
+                    <h3 class="text-2xl font-bold text-emerald-600" id="sumWin">0</h3>
+                </div>
+            </div>
+            <!-- Matches -->
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4 transition-transform hover:-translate-y-1">
+                <div class="bg-amber-50 text-amber-600 p-3 rounded-xl">
+                    <i data-lucide="scale" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-slate-500">ราคาเท่ากัน (Match)</p>
+                    <h3 class="text-2xl font-bold text-amber-600" id="sumMatch">0</h3>
+                </div>
+            </div>
+            <!-- Loses -->
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4 transition-transform hover:-translate-y-1">
+                <div class="bg-rose-50 text-rose-600 p-3 rounded-xl">
+                    <i data-lucide="trending-down" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-slate-500">ราคาแพงกว่า (Lose)</p>
+                    <h3 class="text-2xl font-bold text-rose-600" id="sumLose">0</h3>
+                </div>
+            </div>
+        </div>
+
+        <!-- Controls Section -->
+        <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div class="relative w-full sm:w-96">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <i data-lucide="search" class="h-4 w-4 text-slate-400"></i>
+                </div>
+                <input
+                    type="text"
+                    id="searchInput"
+                    placeholder="ค้นหาชื่อสินค้า หรือ หมวดหมู่..."
+                    class="pl-10 pr-4 py-2.5 w-full bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all shadow-sm"
+                />
             </div>
             
-            <div class="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <i data-lucide="search" class="h-4 w-4 text-slate-400"></i>
-                    </div>
-                    <input
-                        type="text"
-                        id="searchInput"
-                        placeholder="ค้นหาสินค้า..."
-                        class="pl-10 pr-4 py-2 w-full sm:w-64 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all"
-                    />
-                </div>
-                
-                <button 
-                    id="refreshBtn"
-                    class="flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-medium text-white transition-all bg-slate-800 hover:bg-slate-900 shadow-sm"
-                >
-                    <i data-lucide="refresh-cw" id="refreshIcon" class="h-4 w-4"></i>
-                    <span id="refreshText">อัปเดตข้อมูล</span>
-                </button>
-            </div>
+            <button 
+                id="refreshBtn"
+                class="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-medium text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 hover:text-primary transition-all shadow-sm w-full sm:w-auto"
+            >
+                <i data-lucide="refresh-cw" id="refreshIcon" class="h-4 w-4"></i>
+                <span id="refreshText">อัปเดตข้อมูล</span>
+            </button>
+        </div>
+
+        <!-- แจ้งเตือนสถานะข้อมูล (ถ้าไม่ได้ดึงจาก prices.json) -->
+        <div id="fallbackWarning" class="hidden bg-amber-50 border border-amber-200 text-amber-800 text-sm px-4 py-3 rounded-xl flex items-center gap-2">
+            <i data-lucide="info" class="w-5 h-5 text-amber-600"></i>
+            <span>กำลังแสดงข้อมูลจำลอง (ไม่พบไฟล์ prices.json ในระบบ) หากนำขึ้น GitHub จะแสดงข้อมูลจริงอัตโนมัติ</span>
         </div>
 
         <!-- Table Section -->
-        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden overflow-x-auto">
-            <div class="bg-[#fcebe6] py-2 px-4 text-center border-b border-slate-200 font-bold text-slate-800">
-                Update <span id="lastUpdateText">19/03/2026 10:00:00</span>
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="overflow-x-auto no-scrollbar">
+                <table class="w-full text-sm text-left">
+                    <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase text-xs tracking-wider">
+                        <tr>
+                            <th class="px-6 py-4 font-semibold text-center w-24">Category</th>
+                            <th class="px-6 py-4 font-semibold">Product Name</th>
+                            <th class="px-6 py-4 font-bold text-primary bg-slate-100 text-center rounded-t-lg">CJ</th>
+                            <th class="px-6 py-4 font-semibold text-center">Lotus</th>
+                            <th class="px-6 py-4 font-semibold text-center">Big C</th>
+                            <th class="px-6 py-4 font-semibold text-center">7-Eleven</th>
+                            <th class="px-6 py-4 font-semibold text-center">Diff Market</th>
+                            <th class="px-6 py-4 font-semibold text-center">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody" class="divide-y divide-slate-100">
+                        <!-- ข้อมูลจะถูกสร้างด้วย JavaScript -->
+                    </tbody>
+                </table>
             </div>
-            <table class="w-full text-sm text-left whitespace-nowrap">
-                <thead class="text-xs text-slate-800 bg-[#fcebe6] border-b border-slate-200">
-                    <tr>
-                        <th class="px-4 py-4 font-bold text-center border-r border-slate-300">category_name</th>
-                        <th class="px-4 py-4 font-bold text-center border-r border-slate-300">KVI Product</th>
-                        <th class="px-4 py-4 font-bold text-center border-r border-slate-300">CJ</th>
-                        <th class="px-4 py-4 font-bold text-center border-r border-slate-300">Lotus</th>
-                        <th class="px-4 py-4 font-bold text-center border-r border-slate-300">Big C</th>
-                        <th class="px-4 py-4 font-bold text-center border-r border-slate-300">7-Eleven</th>
-                        <th class="px-4 py-4 font-bold text-center border-r border-slate-300">Diff Market</th>
-                        <th class="px-4 py-4 font-bold text-center">Price Battle</th>
-                    </tr>
-                </thead>
-                <tbody id="tableBody">
-                    <!-- ข้อมูลจะถูกสร้างด้วย JavaScript -->
-                </tbody>
-            </table>
+            
+            <!-- Empty State (แสดงเมื่อค้นหาไม่เจอ) -->
+            <div id="emptyState" class="hidden flex-col items-center justify-center py-12 text-slate-400">
+                <i data-lucide="search-x" class="w-12 h-12 mb-3 opacity-50"></i>
+                <p class="text-base font-medium">ไม่พบสินค้าที่ค้นหา</p>
+                <p class="text-sm">ลองใช้คำค้นหาอื่นดูอีกครั้ง</p>
+            </div>
         </div>
 
-    </div>
+    </main>
 
-    <!-- Script สำหรับควบคุมการทำงาน -->
     <script>
-        // ข้อมูลตั้งต้น
-        let appData = [
-            { id: 1, category: "FISH SAUCE", name: "ทิพรสน้ำปลาขวดเพท700cc", cj: 29, lotus: 29.5, bigc: 29.5, seven: 29.5 },
-            { id: 2, category: "FISH SAUCE", name: "เมกาเชฟน้ำปลา500cc", cj: 39, lotus: 42, bigc: 39, seven: 39 },
-            { id: 3, category: "FISH SAUCE", name: "ปลาหมึกน้ำปลาแท้ขวดเพทฉลากเหลือง700ml", cj: 21, lotus: 21, bigc: 21, seven: 24 },
-            { id: 4, category: "FISH SAUCE", name: "ปลาหมึกน้ำปลาแท้ขวดเพทฉลากเขียว700ml", cj: 29, lotus: 27, bigc: 27, seven: 29 },
-            { id: 5, category: "SAUCE", name: "แม่ครัวฉลากทองซอสหอย300cc", cj: 37, lotus: 37, bigc: 36, seven: 37 },
-            { id: 6, category: "SAUCE", name: "แม่ครัวฉลากทองซอสหอย600cc", cj: 49, lotus: 52, bigc: 50, seven: 52 },
-            { id: 7, category: "SAUCE", name: "ภูเขาทองซอสปรุงรสฝาเขียวเพท1L", cj: 53, lotus: 56, bigc: 53, seven: 56 },
-            { id: 8, category: "SAUCE", name: "แม็กกี้ซอสปรุงรส680cc", cj: 34.5, lotus: 36, bigc: 34.5, seven: 42 },
-            { id: 9, category: "SAUCE", name: "แม็กกี้ซอสปรุงอาหารสูตรเข้มเข้าเนื้อ680", cj: 34.5, lotus: 36, bigc: 38, seven: 42 },
-            { id: 10, category: "SAUCE", name: "เด็กสมบูรณ์ซอสหอยนางรมสูตรเข้มข้น800g", cj: 47, lotus: 29, bigc: 29, seven: 39 },
-            { id: 11, category: "SAUCE", name: "เด็กสมบูรณ์ซีอิ๊วขาวสูตร1 700cc", cj: 55, lotus: 47, bigc: 44, seven: 45 },
-            { id: 12, category: "SAUCE", name: "เด็กสมบูรณ์ซีอิ๊วขาวสูตร1 1000cc", cj: 62, lotus: 65, bigc: 65, seven: 66 },
-        ];
-
+        // เริ่มต้นด้วยตัวแปรว่าง
+        let appData = [];
         let searchTerm = "";
+
+        // สีสำหรับ Category Tags
+        const categoryColors = {
+            "FISH SAUCE": "bg-blue-50 text-blue-700 border-blue-200",
+            "SAUCE": "bg-purple-50 text-purple-700 border-purple-200"
+        };
 
         // เริ่มต้นการทำงานของ Lucide Icons
         lucide.createIcons();
@@ -106,22 +181,50 @@
             const minCompetitorPrice = Math.min(item.lotus, item.bigc, item.seven);
             const diff = item.cj - minCompetitorPrice;
             
-            let status = ""; let bgColor = ""; let textColor = "";
+            let status = ""; let badgeClass = ""; let diffClass = ""; let diffText = "";
             
             if (diff < 0) {
-                status = "Win"; bgColor = "bg-green-100"; textColor = "text-green-800";
+                status = "Win"; 
+                badgeClass = "bg-emerald-100 text-emerald-700 border-emerald-200";
+                diffClass = "text-emerald-600 font-semibold";
+                diffText = `<span class="flex items-center justify-center gap-1"><i data-lucide="arrow-down" class="w-3 h-3"></i> ${Math.abs(diff).toFixed(1)}</span>`;
             } else if (diff === 0) {
-                status = "Match"; bgColor = "bg-yellow-100"; textColor = "text-yellow-800";
+                status = "Match"; 
+                badgeClass = "bg-amber-100 text-amber-700 border-amber-200";
+                diffClass = "text-slate-400 font-medium";
+                diffText = "0.0";
             } else {
-                status = "Lose"; bgColor = "bg-red-500"; textColor = "text-white";
+                status = "Lose"; 
+                badgeClass = "bg-rose-100 text-rose-700 border-rose-200";
+                diffClass = "text-rose-600 font-semibold";
+                diffText = `<span class="flex items-center justify-center gap-1"><i data-lucide="arrow-up" class="w-3 h-3"></i> ${diff.toFixed(1)}</span>`;
             }
-            return { diff, status, bgColor, textColor };
+            return { diff, status, badgeClass, diffClass, diffText };
+        }
+
+        // อัปเดตการ์ดสรุปผล
+        function updateSummary(data) {
+            let wins = 0, matches = 0, loses = 0;
+            data.forEach(item => {
+                const stats = calculateStats(item);
+                if(stats.status === "Win") wins++;
+                else if(stats.status === "Match") matches++;
+                else loses++;
+            });
+
+            document.getElementById("sumTotal").innerText = data.length;
+            document.getElementById("sumWin").innerText = wins;
+            document.getElementById("sumMatch").innerText = matches;
+            document.getElementById("sumLose").innerText = loses;
         }
 
         // ฟังก์ชันสร้างหน้าตาราง
         function renderTable() {
             const tbody = document.getElementById("tableBody");
+            const emptyState = document.getElementById("emptyState");
             tbody.innerHTML = "";
+
+            if (!appData || appData.length === 0) return;
 
             // กรองข้อมูลตามคำค้นหา
             const filteredData = appData.filter(item => 
@@ -129,31 +232,49 @@
                 item.category.toLowerCase().includes(searchTerm.toLowerCase())
             );
 
-            filteredData.forEach((item, index) => {
-                const stats = calculateStats(item);
-                const showCategory = index === 0 || filteredData[index - 1].category !== item.category;
+            updateSummary(filteredData);
 
-                // การจัดรูปแบบ Diff (ถ้ามากกว่า 0 ให้พื้นหลังแดง)
-                const diffClass = stats.diff > 0 ? 'bg-red-500 text-white font-bold' : '';
+            if(filteredData.length === 0) {
+                emptyState.classList.remove("hidden");
+                emptyState.classList.add("flex");
+            } else {
+                emptyState.classList.add("hidden");
+                emptyState.classList.remove("flex");
 
-                const tr = document.createElement("tr");
-                tr.className = "bg-white border-b border-slate-200 hover:bg-slate-50 transition-colors";
-                tr.innerHTML = `
-                    <td class="px-4 py-2 font-medium text-slate-700 border-r border-slate-200 text-center align-middle whitespace-normal w-28">
-                        ${showCategory ? item.category : ""}
-                    </td>
-                    <td class="px-4 py-2 font-medium text-slate-800 border-r border-slate-200 whitespace-normal min-w-[200px]">${item.name}</td>
-                    <td class="px-4 py-2 text-center border-r border-slate-200 font-bold text-orange-600 bg-orange-50/30">${item.cj}</td>
-                    <td class="px-4 py-2 text-center border-r border-slate-200">${item.lotus}</td>
-                    <td class="px-4 py-2 text-center border-r border-slate-200">${item.bigc}</td>
-                    <td class="px-4 py-2 text-center border-r border-slate-200">${item.seven}</td>
-                    <td class="px-4 py-2 text-center border-r border-slate-200 ${diffClass}">${stats.diff.toFixed(1)}</td>
-                    <td class="px-4 py-2 text-center font-bold ${stats.bgColor} ${stats.textColor}">${stats.status}</td>
-                `;
-                tbody.appendChild(tr);
-            });
+                filteredData.forEach((item) => {
+                    const stats = calculateStats(item);
+                    const catColor = categoryColors[item.category] || "bg-slate-100 text-slate-700 border-slate-200";
 
-            // อัปเดตไอคอนให้แสดงผลอีกครั้ง
+                    const tr = document.createElement("tr");
+                    tr.className = "hover:bg-slate-50 transition-colors group";
+                    tr.innerHTML = `
+                        <td class="px-6 py-4 text-center">
+                            <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium border ${catColor}">
+                                ${item.category}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="text-sm font-medium text-slate-900">${item.name}</div>
+                        </td>
+                        <td class="px-6 py-4 text-center bg-slate-50 group-hover:bg-slate-100 transition-colors">
+                            <span class="text-base font-bold text-primary">${item.cj.toFixed(2)}</span>
+                        </td>
+                        <td class="px-6 py-4 text-center text-slate-600">${item.lotus.toFixed(2)}</td>
+                        <td class="px-6 py-4 text-center text-slate-600">${item.bigc.toFixed(2)}</td>
+                        <td class="px-6 py-4 text-center text-slate-600">${item.seven.toFixed(2)}</td>
+                        <td class="px-6 py-4 text-center ${stats.diffClass}">
+                            ${stats.diffText}
+                        </td>
+                        <td class="px-6 py-4 text-center">
+                            <span class="inline-flex items-center justify-center min-w-[70px] px-2.5 py-1 rounded-full text-xs font-semibold border ${stats.badgeClass}">
+                                ${stats.status}
+                            </span>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+
             lucide.createIcons();
         }
 
@@ -163,40 +284,74 @@
             renderTable();
         });
 
-        // ระบบปุ่มรีเฟรช (จำลอง)
-        document.getElementById("refreshBtn").addEventListener("click", function() {
+        // อัปเดตเวลา
+        function updateTimestamp() {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            const dateStr = now.toLocaleDateString('th-TH', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            document.getElementById("lastUpdateText").innerText = `${dateStr} ${timeStr}`;
+        }
+
+        // ดึงข้อมูลราคา
+        async function fetchPrices() {
+            try {
+                // พยายามโหลดไฟล์ prices.json
+                const response = await fetch('prices.json?t=' + new Date().getTime());
+                if (!response.ok) throw new Error('ไม่พบไฟล์ prices.json');
+                
+                appData = await response.json();
+                document.getElementById('fallbackWarning').classList.add('hidden'); // ซ่อนคำเตือน
+                
+            } catch (error) {
+                console.log("เข้าสู่โหมดใช้งานข้อมูลสำรอง (Fallback) เนื่องจากไม่พบไฟล์ prices.json");
+                // หากหาไฟล์ไม่เจอ (เช่น เปิดใน Preview) ให้ใช้ข้อมูลชุดนี้แทนเพื่อให้หน้าเว็บไม่พัง
+                appData = [
+                    { id: 1, category: "FISH SAUCE", name: "ทิพรสน้ำปลาขวดเพท 700cc", cj: 29, lotus: 29.5, bigc: 28.0, seven: 29.5 },
+                    { id: 2, category: "FISH SAUCE", name: "เมกาเชฟน้ำปลา 500cc", cj: 39, lotus: 42, bigc: 39, seven: 39 },
+                    { id: 3, category: "FISH SAUCE", name: "ปลาหมึกน้ำปลาแท้ขวดเพทฉลากเหลือง 700ml", cj: 21, lotus: 21, bigc: 21, seven: 24 },
+                    { id: 4, category: "FISH SAUCE", name: "ปลาหมึกน้ำปลาแท้ขวดเพทฉลากเขียว 700ml", cj: 29, lotus: 27, bigc: 27, seven: 29 },
+                    { id: 5, category: "SAUCE", name: "แม่ครัวฉลากทองซอสหอย 300cc", cj: 37, lotus: 37, bigc: 36, seven: 37 },
+                    { id: 6, category: "SAUCE", name: "แม่ครัวฉลากทองซอสหอย 600cc", cj: 49, lotus: 52, bigc: 50, seven: 52 },
+                    { id: 7, category: "SAUCE", name: "ภูเขาทองซอสปรุงรสฝาเขียวเพท 1L", cj: 53, lotus: 56, bigc: 53, seven: 56 },
+                    { id: 8, category: "SAUCE", name: "แม็กกี้ซอสปรุงรส 680cc", cj: 34.5, lotus: 36, bigc: 34.5, seven: 42 },
+                    { id: 9, category: "SAUCE", name: "แม็กกี้ซอสปรุงอาหารสูตรเข้มเข้าเนื้อ 680cc", cj: 34.5, lotus: 36, bigc: 38, seven: 42 },
+                    { id: 10, category: "SAUCE", name: "เด็กสมบูรณ์ซอสหอยนางรมสูตรเข้มข้น 800g", cj: 47, lotus: 29, bigc: 29, seven: 39 },
+                    { id: 11, category: "SAUCE", name: "เด็กสมบูรณ์ซีอิ๊วขาวสูตร1 700cc", cj: 55, lotus: 47, bigc: 44, seven: 45 },
+                    { id: 12, category: "SAUCE", name: "เด็กสมบูรณ์ซีอิ๊วขาวสูตร1 1000cc", cj: 62, lotus: 65, bigc: 65, seven: 66 },
+                ];
+                // แสดงคำเตือนบนหน้าเว็บให้ผู้ใช้ทราบว่านี่คือข้อมูลสำรอง
+                document.getElementById('fallbackWarning').classList.remove('hidden');
+            }
+            
+            renderTable();
+            updateTimestamp();
+        }
+
+        // ระบบปุ่มรีเฟรช
+        document.getElementById("refreshBtn").addEventListener("click", async function() {
             const btn = this;
             const icon = document.getElementById("refreshIcon");
             const text = document.getElementById("refreshText");
-            const status = document.getElementById("statusText");
 
-            // เปลี่ยนสถานะเป็นกำลังโหลด
-            btn.classList.add("bg-slate-400", "cursor-not-allowed");
-            btn.classList.remove("bg-slate-800", "hover:bg-slate-900");
+            btn.classList.add("opacity-75", "cursor-not-allowed", "bg-slate-100");
             icon.classList.add("animate-spin");
             text.innerText = "กำลังอัปเดต...";
-            status.innerHTML = `<i data-lucide="server" class="w-4 h-4 text-blue-500 animate-pulse"></i> กำลังเชื่อมต่อข้อมูล...`;
-            lucide.createIcons();
 
-            // หน่วงเวลา 1 วินาที
-            setTimeout(() => {
-                // คืนค่าสถานะ
-                btn.classList.remove("bg-slate-400", "cursor-not-allowed");
-                btn.classList.add("bg-slate-800", "hover:bg-slate-900");
+            try {
+                // จำลองดีเลย์ให้เห็นว่าระบบกำลังโหลด 1 วินาที
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                await fetchPrices();
+            } catch (error) {
+                console.error("เกิดข้อผิดพลาด:", error);
+            } finally {
+                btn.classList.remove("opacity-75", "cursor-not-allowed", "bg-slate-100");
                 icon.classList.remove("animate-spin");
                 text.innerText = "อัปเดตข้อมูล";
-                
-                // อัปเดตเวลาล่าสุด
-                const now = new Date();
-                document.getElementById("lastUpdateText").innerText = now.toLocaleString('th-TH');
-                status.innerHTML = `<i data-lucide="check-circle-2" class="w-4 h-4 text-green-500"></i> อัปเดตข้อมูลล่าสุดสำเร็จ`;
-                lucide.createIcons();
-
-            }, 1000);
+            }
         });
 
-        // แสดงผลตารางครั้งแรกตอนเปิดหน้าเว็บ
-        renderTable();
+        // ดึงข้อมูลครั้งแรกเมื่อเปิดหน้าเว็บ
+        fetchPrices();
 
     </script>
 </body>
